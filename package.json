@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "services/*",
-    "packages/*"
+    "packages/*",
+    "infrastructure/database"
   ],
   "scripts": {
     "dev": "turbo dev",
@@ -12,7 +13,13 @@
     "test": "turbo test",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "db:migrate": "cd infrastructure/database && pnpm run migrate:latest",
+    "db:rollback": "cd infrastructure/database && pnpm run migrate:rollback",
+    "db:status": "cd infrastructure/database && pnpm run migrate:status",
+    "db:seed": "cd infrastructure/database && pnpm run seed:run",
+    "db:reset": "cd infrastructure/database && pnpm run db:reset",
+    "db:setup": "cd infrastructure/database && pnpm install && pnpm run build && pnpm run migrate:latest && pnpm run seed:run"
   },
   "devDependencies": {
     "eslint": "^9.0.0",

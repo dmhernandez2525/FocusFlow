@@ -1,0 +1,391 @@
+{
+  "kind": "collectionType",
+  "collectionName": "photos",
+  "info": {
+    "singularName": "photo",
+    "pluralName": "photos",
+    "displayName": "Photo",
+    "description": "Photo metadata and S3 storage management"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": "Multi-tenant photo management with S3 storage and AI metadata"
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "filename": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "original_filename": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "s3_key": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "maxLength": 500,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "s3_bucket": {
+      "type": "string",
+      "required": true,
+      "maxLength": 100,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "thumbnail_s3_key": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "preview_s3_key": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "watermarked_s3_key": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "public_url": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "preview_url": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "watermarked_url": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "file_size": {
+      "type": "biginteger",
+      "required": true,
+      "min": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "mime_type": {
+      "type": "string",
+      "required": true,
+      "maxLength": 100,
+      "regex": "^image/",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "width": {
+      "type": "integer",
+      "required": false,
+      "min": 1,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "height": {
+      "type": "integer",
+      "required": false,
+      "min": 1,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "aspect_ratio": {
+      "type": "decimal",
+      "required": false,
+      "min": 0.1,
+      "max": 10.0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "exif_data": {
+      "type": "json",
+      "required": false,
+      "default": {},
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "ai_tags": {
+      "type": "json",
+      "required": false,
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "manual_tags": {
+      "type": "json",
+      "required": false,
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "ai_analysis": {
+      "type": "json",
+      "required": false,
+      "default": {},
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "color_palette": {
+      "type": "json",
+      "required": false,
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_selected": {
+      "type": "boolean",
+      "default": false,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_processed": {
+      "type": "boolean",
+      "default": false,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "processing_status": {
+      "type": "enumeration",
+      "enum": ["pending", "processing", "completed", "failed"],
+      "default": "pending",
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "quality_score": {
+      "type": "decimal",
+      "required": false,
+      "min": 0.0,
+      "max": 1.0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "blur_score": {
+      "type": "decimal",
+      "required": false,
+      "min": 0.0,
+      "max": 1.0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "exposure_score": {
+      "type": "decimal",
+      "required": false,
+      "min": 0.0,
+      "max": 1.0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "sort_order": {
+      "type": "integer",
+      "required": false,
+      "min": 0,
+      "default": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "client_comments": {
+      "type": "text",
+      "required": false,
+      "maxLength": 1000,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "photographer_notes": {
+      "type": "text",
+      "required": false,
+      "maxLength": 1000,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "captured_at": {
+      "type": "datetime",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "photographer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photographer.photographer",
+      "inversedBy": "photos"
+    },
+    "session": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::session.session",
+      "inversedBy": "photos"
+    },
+    "gallery": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::gallery.gallery",
+      "inversedBy": "photos"
+    }
+  }
+}

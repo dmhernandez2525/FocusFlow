@@ -243,7 +243,7 @@ cronJobs:
   - name: database-backup
     runtime: docker
     dockerfilePath: ./infrastructure/backup/Dockerfile
-    schedule: '0 3 * * *' # Daily at 3 AM
+    schedule: "0 3 * * *"  # Daily at 3 AM
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -259,7 +259,7 @@ cronJobs:
   - name: cleanup-expired-galleries
     runtime: docker
     dockerfilePath: ./infrastructure/cleanup/Dockerfile
-    schedule: '0 4 * * *' # Daily at 4 AM
+    schedule: "0 4 * * *"  # Daily at 4 AM
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -269,7 +269,7 @@ cronJobs:
   - name: send-trial-reminders
     runtime: docker
     dockerfilePath: ./infrastructure/reminders/Dockerfile
-    schedule: '0 10 * * *' # Daily at 10 AM
+    schedule: "0 10 * * *"  # Daily at 10 AM
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -289,7 +289,7 @@ envVarGroups:
       - key: TZ
         value: America/Los_Angeles
       - key: MAX_UPLOAD_SIZE
-        value: '104857600' # 100MB
+        value: "104857600"  # 100MB
 
   - name: focusflow-secrets
     envVars:
@@ -303,11 +303,12 @@ envVarGroups:
   - name: focusflow-feature-flags
     envVars:
       - key: ENABLE_AI_TAGGING
-        value: 'true'
+        value: "true"
       - key: ENABLE_PRINT_ORDERS
-        value: 'true'
+        value: "true"
       - key: ENABLE_WORKFLOWS
-        value: 'true'
+        value: "true"
+
 # ===========================================
 # INFRASTRUCTURE NOTES
 # ===========================================
