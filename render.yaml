@@ -11,12 +11,14 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: DATABASE_URL
         fromDatabase:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: red-cu6jv5rqf0us73abfeng
+        value: REPLACE_WITH_REDIS_HOST
       - key: REDIS_PORT
         value: 6379
       - key: AWS_ACCESS_KEY_ID
@@ -67,7 +69,7 @@ services:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: red-cu6jv5rqf0us73abfeng
+        value: REPLACE_WITH_REDIS_HOST
       - key: REDIS_PORT
         value: 6379
       - key: JWT_SECRET
@@ -99,6 +101,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: NEXT_PUBLIC_API_URL
         value: https://api.focusflow.com
       - key: NEXT_PUBLIC_PAYMENTS_URL
@@ -152,7 +156,7 @@ services:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: red-cu6jv5rqf0us73abfeng
+        value: REPLACE_WITH_REDIS_HOST
       - key: REDIS_PORT
         value: 6379
       - key: AWS_ACCESS_KEY_ID
@@ -184,7 +188,7 @@ services:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: red-cu6jv5rqf0us73abfeng
+        value: REPLACE_WITH_REDIS_HOST
       - key: REDIS_PORT
         value: 6379
       - key: AWS_ACCESS_KEY_ID
@@ -216,7 +220,7 @@ services:
       - key: PORT
         value: 3003
       - key: REDIS_HOST
-        value: red-cu6jv5rqf0us73abfeng
+        value: REPLACE_WITH_REDIS_HOST
       - key: REDIS_PORT
         value: 6379
       - key: BASIC_AUTH_USERNAME
