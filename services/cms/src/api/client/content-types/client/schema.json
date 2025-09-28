@@ -1,0 +1,198 @@
+{
+  "kind": "collectionType",
+  "collectionName": "clients",
+  "info": {
+    "singularName": "client",
+    "pluralName": "clients",
+    "displayName": "Client",
+    "description": "Client contact information and relationship management"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": "Multi-tenant client management with lifecycle tracking"
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "first_name": {
+      "type": "string",
+      "required": true,
+      "minLength": 1,
+      "maxLength": 50,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "last_name": {
+      "type": "string",
+      "required": true,
+      "minLength": 1,
+      "maxLength": 50,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": false,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "phone": {
+      "type": "string",
+      "required": false,
+      "unique": false,
+      "minLength": 10,
+      "maxLength": 20,
+      "regex": "^[+]?[1-9]?[0-9]{7,15}$",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "address": {
+      "type": "json",
+      "required": false,
+      "default": {},
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "tags": {
+      "type": "json",
+      "required": false,
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "lifecycle_stage": {
+      "type": "enumeration",
+      "enum": ["lead", "prospect", "client", "past_client", "inactive"],
+      "default": "lead",
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": ["referral", "website", "social_media", "advertising", "word_of_mouth", "other"],
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "notes": {
+      "type": "text",
+      "required": false,
+      "maxLength": 2000,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "budget_range": {
+      "type": "enumeration",
+      "enum": ["under_1000", "1000_2500", "2500_5000", "5000_10000", "over_10000"],
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "preferred_contact_method": {
+      "type": "enumeration",
+      "enum": ["email", "phone", "text", "any"],
+      "default": "email",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "last_contact_date": {
+      "type": "datetime",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "next_followup_date": {
+      "type": "datetime",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "photographer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photographer.photographer",
+      "inversedBy": "clients"
+    },
+    "sessions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::session.session",
+      "mappedBy": "client"
+    },
+    "payments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment.payment",
+      "mappedBy": "client"
+    },
+    "contracts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::contract.contract",
+      "mappedBy": "client"
+    }
+  }
+}

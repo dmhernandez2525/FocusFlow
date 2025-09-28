@@ -24,7 +24,6 @@ import {
 import { ErrorResponseSchema, ValidationErrorResponseSchema } from '@/schemas/common';
 import { getStripeService } from '@/utils/stripe';
 import { idempotencyMiddleware, storeIdempotentResponse } from '@/utils/idempotency';
-import { v4 as uuidv4 } from 'crypto';
 
 export default async function paymentIntentsRoutes(fastify: FastifyInstance): Promise<void> {
   // Create Payment Intent

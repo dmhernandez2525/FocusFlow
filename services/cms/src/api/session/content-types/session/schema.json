@@ -1,0 +1,288 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sessions",
+  "info": {
+    "singularName": "session",
+    "pluralName": "sessions",
+    "displayName": "Session",
+    "description": "Photography session management and tracking"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": "Multi-tenant session management with status tracking"
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "session_name": {
+      "type": "string",
+      "required": true,
+      "minLength": 2,
+      "maxLength": 100,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "session_type": {
+      "type": "enumeration",
+      "enum": ["wedding", "portrait", "family", "corporate", "event", "maternity", "newborn", "engagement", "other"],
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "session_date": {
+      "type": "datetime",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "session_duration": {
+      "type": "integer",
+      "required": false,
+      "min": 15,
+      "max": 1440,
+      "default": 120,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "location": {
+      "type": "json",
+      "required": false,
+      "default": {},
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["inquiry", "booked", "confirmed", "in_progress", "completed", "delivered", "cancelled"],
+      "default": "inquiry",
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "total_amount": {
+      "type": "decimal",
+      "required": false,
+      "min": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "deposit_amount": {
+      "type": "decimal",
+      "required": false,
+      "min": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "deposit_paid": {
+      "type": "boolean",
+      "default": false,
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "final_payment_amount": {
+      "type": "decimal",
+      "required": false,
+      "min": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "final_payment_paid": {
+      "type": "boolean",
+      "default": false,
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "contract_signed": {
+      "type": "boolean",
+      "default": false,
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "contract_status": {
+      "type": "enumeration",
+      "enum": ["not_sent", "sent", "signed", "expired"],
+      "default": "not_sent",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "notes": {
+      "type": "text",
+      "required": false,
+      "maxLength": 2000,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "preparation_notes": {
+      "type": "text",
+      "required": false,
+      "maxLength": 2000,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "equipment_checklist": {
+      "type": "json",
+      "required": false,
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "shot_list": {
+      "type": "json",
+      "required": false,
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "delivery_deadline": {
+      "type": "datetime",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "delivered_at": {
+      "type": "datetime",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "photo_count": {
+      "type": "integer",
+      "required": false,
+      "min": 0,
+      "default": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "selected_photo_count": {
+      "type": "integer",
+      "required": false,
+      "min": 0,
+      "default": 0,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "photographer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photographer.photographer",
+      "inversedBy": "sessions"
+    },
+    "client": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::client.client",
+      "inversedBy": "sessions"
+    },
+    "galleries": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::gallery.gallery",
+      "mappedBy": "session"
+    },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "session"
+    },
+    "payments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment.payment",
+      "mappedBy": "session"
+    },
+    "contract": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::contract.contract",
+      "inversedBy": "session"
+    }
+  }
+}

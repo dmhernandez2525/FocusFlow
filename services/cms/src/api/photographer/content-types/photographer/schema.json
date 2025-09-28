@@ -1,0 +1,209 @@
+{
+  "kind": "collectionType",
+  "collectionName": "photographers",
+  "info": {
+    "singularName": "photographer",
+    "pluralName": "photographers",
+    "displayName": "Photographer",
+    "description": "Photographer business accounts and settings"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": "Multi-tenant photographer accounts with business settings"
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "business_name": {
+      "type": "string",
+      "required": true,
+      "unique": false,
+      "minLength": 2,
+      "maxLength": 100,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "phone": {
+      "type": "string",
+      "required": false,
+      "unique": false,
+      "minLength": 10,
+      "maxLength": 20,
+      "regex": "^[+]?[1-9]?[0-9]{7,15}$",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "subscription_tier": {
+      "type": "enumeration",
+      "enum": ["free", "basic", "professional", "enterprise"],
+      "default": "free",
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "subscription_status": {
+      "type": "enumeration",
+      "enum": ["active", "cancelled", "expired", "trial"],
+      "default": "trial",
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "subscription_expires_at": {
+      "type": "datetime",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "required": false,
+      "unique": true,
+      "private": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "required": false,
+      "unique": true,
+      "private": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "settings": {
+      "type": "json",
+      "required": false,
+      "default": {},
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true,
+      "configurable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "timezone": {
+      "type": "string",
+      "required": false,
+      "default": "UTC",
+      "maxLength": 50,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "website_url": {
+      "type": "string",
+      "required": false,
+      "regex": "^https?://[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&:/~\\+#]*[\\w\\-\\@?^=%&/~\\+#])?$",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "logo_url": {
+      "type": "string",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "clients": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::client.client",
+      "mappedBy": "photographer"
+    },
+    "sessions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::session.session",
+      "mappedBy": "photographer"
+    },
+    "galleries": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::gallery.gallery",
+      "mappedBy": "photographer"
+    },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "photographer"
+    },
+    "payments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment.payment",
+      "mappedBy": "photographer"
+    },
+    "contracts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::contract.contract",
+      "mappedBy": "photographer"
+    },
+    "workflows": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::workflow.workflow",
+      "mappedBy": "photographer"
+    }
+  }
+}
