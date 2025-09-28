@@ -1,0 +1,111 @@
+# Build arguments
+ARG NODE_VERSION=22
+ARG SERVICE_NAME
+
+# Base stage with Node.js 22 Alpine
+FROM node:${NODE_VERSION}-alpine AS base
+
+# Install system dependencies and security updates
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    dumb-init \
+    curl \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
+
+# Set working directory
+WORKDIR /app
+
+# Copy package manager files
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
+
+# Dependencies stage
+FROM base AS deps
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/*/package.json ./packages/
+COPY services/*/package.json ./services/
+
+# Install dependencies
+RUN pnpm fetch --frozen-lockfile
+RUN pnpm install --frozen-lockfile --offline
+
+# Development stage
+FROM deps AS development
+
+# Copy source code
+COPY . .
+
+# Change ownership to nodejs user
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+# Copy entrypoint script
+COPY --chown=nextjs:nodejs infrastructure/docker/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Set default command
+ENTRYPOINT ["dumb-init", "--", "docker-entrypoint.sh"]
+CMD ["npm", "run", "dev"]
+
+# Builder stage
+FROM deps AS builder
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN pnpm run build
+
+# Production stage
+FROM base AS production
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/*/package.json ./packages/
+COPY services/*/package.json ./services/
+
+# Install production dependencies only
+RUN pnpm fetch --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --offline --prod
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nextjs:nodejs /app/services ./services
+
+# Copy configuration files
+COPY --chown=nextjs:nodejs tsconfig.base.json ./
+COPY --chown=nextjs:nodejs turbo.json ./
+
+# Copy entrypoint script
+COPY --chown=nextjs:nodejs infrastructure/docker/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Change ownership to nodejs user
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port (will be overridden by specific services)
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
+
+# Set default command
+ENTRYPOINT ["dumb-init", "--", "docker-entrypoint.sh"]
+CMD ["npm", "start"]

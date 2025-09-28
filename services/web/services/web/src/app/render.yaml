@@ -1,0 +1,362 @@
+services:
+  # ===========================================
+  # POSTGRESQL DATABASE
+  # ===========================================
+  - type: pserv
+    name: focusflow-db
+    runtime: docker
+    plan: standard
+    region: oregon
+    env: docker
+    dockerfilePath: ./infrastructure/postgres/Dockerfile
+    envVars:
+      - key: POSTGRES_DB
+        value: focusflow_production
+      - key: POSTGRES_USER
+        value: focusflow_admin
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+    disk:
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 100
+
+  # ===========================================
+  # REDIS CACHE
+  # ===========================================
+  - type: pserv
+    name: focusflow-redis
+    runtime: docker
+    plan: standard
+    region: oregon
+    env: docker
+    dockerCommand: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    envVars:
+      - key: REDIS_VERSION
+        value: "8"
+    disk:
+      name: redis-data
+      mountPath: /data
+      sizeGB: 10
+
+  # ===========================================
+  # STRAPI CMS SERVICE
+  # ===========================================
+  - type: web
+    name: focusflow-cms
+    runtime: docker
+    plan: standard
+    region: oregon
+    dockerfilePath: ./services/cms/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: pserv
+          name: focusflow-redis
+          property: connectionString
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET
+        value: focusflow-production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_JWT_SECRET
+        generateValue: true
+      - key: API_TOKEN_SALT
+        generateValue: true
+      - key: TRANSFER_TOKEN_SALT
+        generateValue: true
+      - key: APP_KEYS
+        generateValue: true
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: noreply@focusflow.com
+    disk:
+      name: cms-uploads
+      mountPath: /opt/app/public/uploads
+      sizeGB: 50
+    healthCheckPath: /health
+    autoDeploy: false
+
+  # ===========================================
+  # PAYMENT SERVICE (FASTIFY)
+  # ===========================================
+  - type: web
+    name: focusflow-payments
+    runtime: docker
+    plan: standard
+    region: oregon
+    dockerfilePath: ./services/payments/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: pserv
+          name: focusflow-redis
+          property: connectionString
+      - key: JWT_SECRET
+        fromService:
+          type: web
+          name: focusflow-cms
+          envVarKey: JWT_SECRET
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_STARTER
+        sync: false
+      - key: STRIPE_PRICE_PROFESSIONAL
+        sync: false
+      - key: STRIPE_PRICE_STUDIO
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://focusflow.com,https://api.focusflow.com
+    healthCheckPath: /health
+    autoDeploy: false
+
+  # ===========================================
+  # NEXT.JS FRONTEND
+  # ===========================================
+  - type: web
+    name: focusflow-web
+    runtime: docker
+    plan: standard
+    region: oregon
+    dockerfilePath: ./services/web/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://api.focusflow.com
+      - key: NEXT_PUBLIC_PAYMENTS_URL
+        value: https://payments.focusflow.com
+      - key: NEXT_PUBLIC_STRIPE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CDN_URL
+        value: https://cdn.focusflow.com
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /sign-in
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /sign-up
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+        value: /dashboard
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+        value: /dashboard
+    pullRequestPreviewsEnabled: true
+    autoDeploy: false
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+
+  # ===========================================
+  # BACKGROUND WORKER
+  # ===========================================
+  - type: worker
+    name: focusflow-worker
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./services/worker/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: pserv
+          name: focusflow-redis
+          property: connectionString
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET
+        value: focusflow-production
+      - key: SENDGRID_API_KEY
+        sync: false
+    autoDeploy: false
+
+  # ===========================================
+  # IMAGE PROCESSOR (LAMBDA FUNCTION TRIGGER)
+  # ===========================================
+  - type: worker
+    name: focusflow-image-processor
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./services/image-processor/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: pserv
+          name: focusflow-redis
+          property: connectionString
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET
+        value: focusflow-production
+      - key: S3_PROCESSED_BUCKET
+        value: focusflow-processed
+      - key: CDN_DOMAIN
+        value: cdn.focusflow.com
+    autoDeploy: false
+
+  # ===========================================
+  # BULL BOARD (QUEUE MONITORING)
+  # ===========================================
+  - type: web
+    name: focusflow-bull-board
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./services/bull-board/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3003
+      - key: REDIS_URL
+        fromService:
+          type: pserv
+          name: focusflow-redis
+          property: connectionString
+      - key: BASIC_AUTH_USERNAME
+        value: admin
+      - key: BASIC_AUTH_PASSWORD
+        generateValue: true
+    healthCheckPath: /health
+    autoDeploy: false
+
+# ===========================================
+# CRON JOBS
+# ===========================================
+cronJobs:
+  - name: database-backup
+    runtime: docker
+    dockerfilePath: ./infrastructure/backup/Dockerfile
+    schedule: "0 3 * * *"  # Daily at 3 AM
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BACKUP_BUCKET
+        value: focusflow-backups
+
+  - name: cleanup-expired-galleries
+    runtime: docker
+    dockerfilePath: ./infrastructure/cleanup/Dockerfile
+    schedule: "0 4 * * *"  # Daily at 4 AM
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+
+  - name: send-trial-reminders
+    runtime: docker
+    dockerfilePath: ./infrastructure/reminders/Dockerfile
+    schedule: "0 10 * * *"  # Daily at 10 AM
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: SENDGRID_API_KEY
+        sync: false
+
+# ===========================================
+# ENVIRONMENT GROUPS
+# ===========================================
+envVarGroups:
+  - name: focusflow-shared
+    envVars:
+      - key: LOG_LEVEL
+        value: info
+      - key: TZ
+        value: America/Los_Angeles
+      - key: MAX_UPLOAD_SIZE
+        value: "104857600"  # 100MB
+
+  - name: focusflow-secrets
+    envVars:
+      - key: SENTRY_DSN
+        sync: false
+      - key: HONEYCOMB_API_KEY
+        sync: false
+      - key: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: https://api.honeycomb.io
+
+  - name: focusflow-feature-flags
+    envVars:
+      - key: ENABLE_AI_TAGGING
+        value: "true"
+      - key: ENABLE_PRINT_ORDERS
+        value: "true"
+      - key: ENABLE_WORKFLOWS
+        value: "true"
+
+# ===========================================
+# INFRASTRUCTURE NOTES
+# ===========================================
+# 1. All production services use 'standard' plan for reliability
+# 2. Workers use 'starter' plan as they don't need high performance
+# 3. Auto-deploy is disabled - deployments are managed via GitLab CI/CD
+# 4. Pull request previews enabled only for frontend
+# 5. Health checks configured for all web services
+# 6. Persistent disks for database, redis, and file storage
+# 7. Environment variables shared across services where appropriate
+# 8. Security headers configured for frontend
+# 9. Daily backups scheduled for database
+# 10. Cleanup jobs for expired content

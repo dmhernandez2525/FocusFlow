@@ -1,0 +1,325 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ''
+  NODE_VERSION: '22'
+  POSTGRES_DB: focusflow_test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST_AUTH_METHOD: trust
+  FF_USE_FASTZIP: "true"
+  ARTIFACT_COMPRESSION_LEVEL: "fast"
+  CACHE_COMPRESSION_LEVEL: "fast"
+
+# Global cache configuration
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .pnpm-store/
+
+before_script:
+  - echo "Starting CI/CD pipeline for commit ${CI_COMMIT_SHA}"
+
+# ==========================================
+# TEST STAGE
+# ==========================================
+
+.test_template: &test_template
+  stage: test
+  image: node:22-alpine
+  services:
+    - postgres:17-alpine
+    - redis:8-alpine
+  before_script:
+    - apk add --no-cache python3 make g++ git
+    - npm install -g pnpm@9
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+      junit: junit.xml
+
+test:unit:
+  <<: *test_template
+  script:
+    - echo "Running unit tests"
+    - pnpm run test:ci
+  coverage: '/Lines\s*:\s*([0-9.]+)%/'
+
+test:lint:
+  <<: *test_template
+  script:
+    - echo "Running linters"
+    - pnpm run lint
+  allow_failure: true
+
+test:type-check:
+  <<: *test_template
+  script:
+    - echo "Running type checks"
+    - pnpm run type-check
+
+test:security:
+  stage: test
+  image: node:22-alpine
+  script:
+    - npm audit --audit-level=moderate
+  allow_failure: true
+  only:
+    - main
+    - develop
+
+test:e2e:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.48.0-focal
+  services:
+    - postgres:17-alpine
+    - redis:8-alpine
+  variables:
+    DATABASE_URL: postgresql://postgres:postgres@postgres:5432/focusflow_test
+    REDIS_URL: redis://redis:6379
+  script:
+    - npm install -g pnpm@9
+    - pnpm install
+    - pnpm exec playwright install
+    - pnpm run test:e2e
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+
+# ==========================================
+# BUILD STAGE
+# ==========================================
+
+.build_template: &build_template
+  stage: build
+  image: docker:28-dind
+  services:
+    - docker:28-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "Building Docker images for ${CI_COMMIT_REF_NAME}"
+
+build:cms:
+  <<: *build_template
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/cms:$CI_COMMIT_SHA ./services/cms
+    - docker build -t $CI_REGISTRY_IMAGE/cms:latest ./services/cms
+    - docker push $CI_REGISTRY_IMAGE/cms:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/cms:latest
+  only:
+    - main
+    - develop
+
+build:payments:
+  <<: *build_template
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/payments:$CI_COMMIT_SHA ./services/payments
+    - docker build -t $CI_REGISTRY_IMAGE/payments:latest ./services/payments
+    - docker push $CI_REGISTRY_IMAGE/payments:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/payments:latest
+  only:
+    - main
+    - develop
+
+build:web:
+  <<: *build_template
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA ./services/web
+    - docker build -t $CI_REGISTRY_IMAGE/web:latest ./services/web
+    - docker push $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/web:latest
+  only:
+    - main
+    - develop
+
+build:worker:
+  <<: *build_template
+  script:
+    - |
+      if [ -d "services/worker" ]; then
+        docker build -t $CI_REGISTRY_IMAGE/worker:$CI_COMMIT_SHA ./services/worker
+        docker build -t $CI_REGISTRY_IMAGE/worker:latest ./services/worker
+        docker push $CI_REGISTRY_IMAGE/worker:$CI_COMMIT_SHA
+        docker push $CI_REGISTRY_IMAGE/worker:latest
+      else
+        echo "Worker service not found, skipping..."
+      fi
+  only:
+    - main
+    - develop
+
+# ==========================================
+# DEPLOY STAGE
+# ==========================================
+
+.deploy_template: &deploy_template
+  stage: deploy
+  image: curlimages/curl:latest
+  variables:
+    DEPLOY_TIMEOUT: "600"
+
+deploy:staging:
+  <<: *deploy_template
+  environment:
+    name: staging
+    url: https://staging.focusflow.com
+  script:
+    - echo "Deploying to staging environment"
+    - |
+      # Deploy CMS
+      curl -X POST https://api.render.com/v1/services/$RENDER_STAGING_CMS_ID/deploys \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"clearCache": false, "imageUrl": "'$CI_REGISTRY_IMAGE'/cms:'$CI_COMMIT_SHA'"}'
+    - |
+      # Deploy Payments
+      curl -X POST https://api.render.com/v1/services/$RENDER_STAGING_PAYMENTS_ID/deploys \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"clearCache": false, "imageUrl": "'$CI_REGISTRY_IMAGE'/payments:'$CI_COMMIT_SHA'"}'
+    - |
+      # Deploy Web
+      curl -X POST https://api.render.com/v1/services/$RENDER_STAGING_WEB_ID/deploys \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"clearCache": true, "imageUrl": "'$CI_REGISTRY_IMAGE'/web:'$CI_COMMIT_SHA'"}'
+  only:
+    - develop
+  when: on_success
+
+deploy:production:
+  <<: *deploy_template
+  environment:
+    name: production
+    url: https://focusflow.com
+  script:
+    - echo "Deploying to production environment"
+    - |
+      # Deploy CMS
+      curl -X POST https://api.render.com/v1/services/$RENDER_PROD_CMS_ID/deploys \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"clearCache": false, "imageUrl": "'$CI_REGISTRY_IMAGE'/cms:'$CI_COMMIT_SHA'"}'
+    - |
+      # Deploy Payments
+      curl -X POST https://api.render.com/v1/services/$RENDER_PROD_PAYMENTS_ID/deploys \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"clearCache": false, "imageUrl": "'$CI_REGISTRY_IMAGE'/payments:'$CI_COMMIT_SHA'"}'
+    - |
+      # Deploy Web
+      curl -X POST https://api.render.com/v1/services/$RENDER_PROD_WEB_ID/deploys \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"clearCache": true, "imageUrl": "'$CI_REGISTRY_IMAGE'/web:'$CI_COMMIT_SHA'"}'
+    - |
+      # Run database migrations
+      curl -X POST https://api.render.com/v1/jobs/$RENDER_PROD_MIGRATION_JOB_ID/runs \
+        -H "Authorization: Bearer $RENDER_API_KEY" \
+        -H "Content-Type: application/json"
+  only:
+    - main
+  when: manual
+  allow_failure: false
+
+# ==========================================
+# POST-DEPLOY JOBS
+# ==========================================
+
+smoke_test:staging:
+  stage: deploy
+  image: curlimages/curl:latest
+  needs: ["deploy:staging"]
+  script:
+    - echo "Running smoke tests on staging"
+    - curl -f https://staging.focusflow.com/health || exit 1
+    - curl -f https://staging-api.focusflow.com/health || exit 1
+    - curl -f https://staging-payments.focusflow.com/health || exit 1
+  only:
+    - develop
+
+smoke_test:production:
+  stage: deploy
+  image: curlimages/curl:latest
+  needs: ["deploy:production"]
+  script:
+    - echo "Running smoke tests on production"
+    - curl -f https://focusflow.com/health || exit 1
+    - curl -f https://api.focusflow.com/health || exit 1
+    - curl -f https://payments.focusflow.com/health || exit 1
+  only:
+    - main
+
+rollback:production:
+  stage: deploy
+  image: curlimages/curl:latest
+  environment:
+    name: production
+  script:
+    - echo "Rolling back production deployment"
+    - |
+      # Rollback to previous deployment
+      curl -X POST https://api.render.com/v1/services/$RENDER_PROD_CMS_ID/rollback \
+        -H "Authorization: Bearer $RENDER_API_KEY"
+    - |
+      curl -X POST https://api.render.com/v1/services/$RENDER_PROD_PAYMENTS_ID/rollback \
+        -H "Authorization: Bearer $RENDER_API_KEY"
+    - |
+      curl -X POST https://api.render.com/v1/services/$RENDER_PROD_WEB_ID/rollback \
+        -H "Authorization: Bearer $RENDER_API_KEY"
+  only:
+    - main
+  when: manual
+  allow_failure: false
+
+# ==========================================
+# SCHEDULED JOBS
+# ==========================================
+
+database_backup:
+  stage: deploy
+  image: postgres:17-alpine
+  only:
+    - schedules
+  variables:
+    PGPASSWORD: $PROD_DB_PASSWORD
+  script:
+    - echo "Backing up production database"
+    - |
+      pg_dump -h $PROD_DB_HOST -U $PROD_DB_USER -d $PROD_DB_NAME \
+        --format=custom --no-owner --no-acl \
+        > backup_$(date +%Y%m%d_%H%M%S).dump
+    - |
+      # Upload to S3
+      apk add --no-cache aws-cli
+      aws s3 cp backup_*.dump s3://$BACKUP_BUCKET/database/
+  artifacts:
+    paths:
+      - backup_*.dump
+    expire_in: 1 day
+
+dependency_update:
+  stage: test
+  image: node:22-alpine
+  only:
+    - schedules
+  script:
+    - npm install -g npm-check-updates
+    - ncu -u --target minor
+    - npm audit fix
+  allow_failure: true

@@ -1,0 +1,297 @@
+services:
+  # Database Services (Production Configuration)
+  postgres:
+    image: postgres:17.6-alpine
+    container_name: focusflow-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-focusflow}
+      POSTGRES_USER: ${DATABASE_USER:-focusflow}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - focusflow-prod-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-focusflow} -d ${DATABASE_NAME:-focusflow}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  redis:
+    image: redis:8.0-alpine
+    container_name: focusflow-redis-prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_prod_data:/data
+    networks:
+      - focusflow-prod-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Application Services (Production)
+  web:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: web
+    container_name: focusflow-web-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-focusflow}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-focusflow}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_URL: ${API_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SENTRY_DSN: ${SENTRY_DSN}
+    networks:
+      - focusflow-prod-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+      replicas: 1
+
+  cms:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: cms
+    container_name: focusflow-cms-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8001
+      DATABASE_URL: postgresql://${DATABASE_USER:-focusflow}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-focusflow}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SENTRY_DSN: ${SENTRY_DSN}
+    networks:
+      - focusflow-prod-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  notifications:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: notifications
+    container_name: focusflow-notifications-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8002
+      DATABASE_URL: postgresql://${DATABASE_USER:-focusflow}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-focusflow}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      FROM_EMAIL: ${FROM_EMAIL}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SENTRY_DSN: ${SENTRY_DSN}
+    networks:
+      - focusflow-prod-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  payments:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: payments
+    container_name: focusflow-payments-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8003
+      DATABASE_URL: postgresql://${DATABASE_USER:-focusflow}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-focusflow}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SENTRY_DSN: ${SENTRY_DSN}
+    networks:
+      - focusflow-prod-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  image-processor:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: image-processor
+    container_name: focusflow-image-processor-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8004
+      DATABASE_URL: postgresql://${DATABASE_USER:-focusflow}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-focusflow}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SENTRY_DSN: ${SENTRY_DSN}
+    networks:
+      - focusflow-prod-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # Reverse Proxy (Production)
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: focusflow-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/docker/ssl:/etc/nginx/ssl:ro
+    networks:
+      - focusflow-prod-network
+    depends_on:
+      - web
+      - cms
+      - notifications
+      - payments
+      - image-processor
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+networks:
+  focusflow-prod-network:
+    driver: bridge
+    name: focusflow-prod-network
+
+volumes:
+  postgres_prod_data:
+    driver: local
+    name: focusflow-postgres-prod-data
+  redis_prod_data:
+    driver: local
+    name: focusflow-redis-prod-data

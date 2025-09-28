@@ -1,0 +1,245 @@
+services:
+  # Database Services
+  postgres:
+    image: postgres:17.6-alpine
+    container_name: focusflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: focusflow_dev
+      POSTGRES_USER: focusflow
+      POSTGRES_PASSWORD: focusflow_dev_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - focusflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U focusflow -d focusflow_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:8.0-alpine
+    container_name: focusflow-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass focusflow_redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - focusflow-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  # Application Services
+  web:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: web
+    container_name: focusflow-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://focusflow:focusflow_dev_password@postgres:5432/focusflow_dev
+      REDIS_URL: redis://:focusflow_redis_password@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-development-jwt-secret-key}
+      FRONTEND_URL: http://localhost:3000
+      API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./services/web:/app/services/web:ro
+      - /app/node_modules
+      - /app/services/web/node_modules
+    networks:
+      - focusflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  cms:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: cms
+    container_name: focusflow-cms
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8001
+      DATABASE_URL: postgresql://focusflow:focusflow_dev_password@postgres:5432/focusflow_dev
+      REDIS_URL: redis://:focusflow_redis_password@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-development-jwt-secret-key}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./services/cms:/app/services/cms:ro
+      - /app/node_modules
+      - /app/services/cms/node_modules
+    networks:
+      - focusflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  notifications:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: notifications
+    container_name: focusflow-notifications
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8002
+      DATABASE_URL: postgresql://focusflow:focusflow_dev_password@postgres:5432/focusflow_dev
+      REDIS_URL: redis://:focusflow_redis_password@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-development-jwt-secret-key}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@focusflow.app}
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./services/notifications:/app/services/notifications:ro
+      - /app/node_modules
+      - /app/services/notifications/node_modules
+    networks:
+      - focusflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  payments:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: payments
+    container_name: focusflow-payments
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8003
+      DATABASE_URL: postgresql://focusflow:focusflow_dev_password@postgres:5432/focusflow_dev
+      REDIS_URL: redis://:focusflow_redis_password@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-development-jwt-secret-key}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./services/payments:/app/services/payments:ro
+      - /app/node_modules
+      - /app/services/payments/node_modules
+    networks:
+      - focusflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  image-processor:
+    build:
+      context: .
+      dockerfile: ./infrastructure/docker/Dockerfile.base
+      target: production
+      args:
+        SERVICE_NAME: image-processor
+    container_name: focusflow-image-processor
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8004
+      DATABASE_URL: postgresql://focusflow:focusflow_dev_password@postgres:5432/focusflow_dev
+      REDIS_URL: redis://:focusflow_redis_password@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-development-jwt-secret-key}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-focusflow-uploads}
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./services/image-processor:/app/services/image-processor:ro
+      - /app/node_modules
+      - /app/services/image-processor/node_modules
+    networks:
+      - focusflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  focusflow-network:
+    driver: bridge
+    name: focusflow-network
+
+volumes:
+  postgres_data:
+    driver: local
+    name: focusflow-postgres-data
+  redis_data:
+    driver: local
+    name: focusflow-redis-data

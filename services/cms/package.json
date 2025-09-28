@@ -1,0 +1,58 @@
+{
+  "name": "@focusflow/cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FocusFlow CMS powered by Strapi v5.23.1",
+  "scripts": {
+    "dev": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "clean": "rm -rf .cache .tmp build node_modules",
+    "export": "strapi export",
+    "import": "strapi import"
+  },
+  "dependencies": {
+    "@strapi/strapi": "5.23.1",
+    "@strapi/plugin-users-permissions": "5.23.1",
+    "@strapi/plugin-i18n": "5.23.1",
+    "@strapi/plugin-upload": "5.23.1",
+    "@strapi/provider-upload-aws-s3": "5.23.1",
+    "pg": "^8.13.1",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.4.1",
+    "sharp": "^0.33.5",
+    "uuid": "^10.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^10.0.0",
+    "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
+    "eslint": "^9.12.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "strapi": {
+    "uuid": "cms-focusflow-v5"
+  }
+}
