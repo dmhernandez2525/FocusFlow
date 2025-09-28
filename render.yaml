@@ -12,15 +12,15 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: "10000"
       - key: DATABASE_URL
         fromDatabase:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: REPLACE_WITH_REDIS_HOST
+        value: ""
       - key: REDIS_PORT
-        value: 6379
+        value: "6379"
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -46,7 +46,7 @@ services:
     disk:
       name: cms-uploads
       mountPath: /opt/app/public/uploads
-      sizeGB: 50
+      sizeGB: "50"
     healthCheckPath: /health
     autoDeploy: false
 
@@ -63,15 +63,15 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3001
+        value: "3001"
       - key: DATABASE_URL
         fromDatabase:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: REPLACE_WITH_REDIS_HOST
+        value: ""
       - key: REDIS_PORT
-        value: 6379
+        value: "6379"
       - key: JWT_SECRET
         generateValue: true
       - key: STRIPE_SECRET_KEY
@@ -102,7 +102,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: "10000"
       - key: NEXT_PUBLIC_API_URL
         value: https://api.focusflow.com
       - key: NEXT_PUBLIC_PAYMENTS_URL
@@ -156,9 +156,9 @@ services:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: REPLACE_WITH_REDIS_HOST
+        value: ""
       - key: REDIS_PORT
-        value: 6379
+        value: "6379"
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -188,9 +188,9 @@ services:
           name: focusflow-db
           property: connectionString
       - key: REDIS_HOST
-        value: REPLACE_WITH_REDIS_HOST
+        value: ""
       - key: REDIS_PORT
-        value: 6379
+        value: "6379"
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -218,11 +218,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3003
+        value: "3003"
       - key: REDIS_HOST
-        value: REPLACE_WITH_REDIS_HOST
+        value: ""
       - key: REDIS_PORT
-        value: 6379
+        value: "6379"
       - key: BASIC_AUTH_USERNAME
         value: admin
       - key: BASIC_AUTH_PASSWORD
@@ -239,13 +239,13 @@ databases:
     user: focusflow_admin
     plan: standard
     region: oregon
+    version: "15"
 
 # ===========================================
 # CRON JOBS
 # ===========================================
 cronJobs:
   - name: database-backup
-    runtime: docker
     dockerfilePath: ./infrastructure/backup/Dockerfile
     schedule: '0 3 * * *' # Daily at 3 AM
     envVars:
@@ -261,7 +261,6 @@ cronJobs:
         value: focusflow-backups
 
   - name: cleanup-expired-galleries
-    runtime: docker
     dockerfilePath: ./infrastructure/cleanup/Dockerfile
     schedule: '0 4 * * *' # Daily at 4 AM
     envVars:
@@ -271,7 +270,6 @@ cronJobs:
           property: connectionString
 
   - name: send-trial-reminders
-    runtime: docker
     dockerfilePath: ./infrastructure/reminders/Dockerfile
     schedule: '0 10 * * *' # Daily at 10 AM
     envVars:
