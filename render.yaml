@@ -231,25 +231,15 @@ services:
     autoDeploy: false
 
 # ===========================================
-# DATABASES
-# ===========================================
-databases:
-  - name: focusflow-db
-    databaseName: focusflow_production
-    user: focusflow_admin
-    plan: standard
-    region: oregon
-    version: "15"
-
-# ===========================================
-# CRON JOBS
-# ===========================================
-cronJobs:
-  - name: database-backup
-    runtime: image
+  # CRON JOBS - Added as services with type: cron
+  # ===========================================
+  - type: cron
+    name: database-backup
+    runtime: docker
     dockerfilePath: ./infrastructure/backup/Dockerfile
     schedule: '0 3 * * *' # Daily at 3 AM
     region: oregon
+    plan: starter
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -262,22 +252,26 @@ cronJobs:
       - key: S3_BACKUP_BUCKET
         value: focusflow-backups
 
-  - name: cleanup-expired-galleries
-    runtime: image
+  - type: cron
+    name: cleanup-expired-galleries
+    runtime: docker
     dockerfilePath: ./infrastructure/cleanup/Dockerfile
     schedule: '0 4 * * *' # Daily at 4 AM
     region: oregon
+    plan: starter
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: focusflow-db
           property: connectionString
 
-  - name: send-trial-reminders
-    runtime: image
+  - type: cron
+    name: send-trial-reminders
+    runtime: docker
     dockerfilePath: ./infrastructure/reminders/Dockerfile
     schedule: '0 10 * * *' # Daily at 10 AM
     region: oregon
+    plan: starter
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -285,6 +279,17 @@ cronJobs:
           property: connectionString
       - key: SENDGRID_API_KEY
         sync: false
+
+# ===========================================
+# DATABASES
+# ===========================================
+databases:
+  - name: focusflow-db
+    databaseName: focusflow_production
+    user: focusflow_admin
+    plan: standard
+    region: oregon
+    version: "15"
 
 # ===========================================
 # ENVIRONMENT GROUPS
