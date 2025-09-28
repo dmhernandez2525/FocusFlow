@@ -46,7 +46,7 @@ services:
     disk:
       name: cms-uploads
       mountPath: /opt/app/public/uploads
-      sizeGB: "50"
+      sizeGB: 50
     healthCheckPath: /health
     autoDeploy: false
 
@@ -246,8 +246,10 @@ databases:
 # ===========================================
 cronJobs:
   - name: database-backup
+    runtime: image
     dockerfilePath: ./infrastructure/backup/Dockerfile
     schedule: '0 3 * * *' # Daily at 3 AM
+    region: oregon
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -261,8 +263,10 @@ cronJobs:
         value: focusflow-backups
 
   - name: cleanup-expired-galleries
+    runtime: image
     dockerfilePath: ./infrastructure/cleanup/Dockerfile
     schedule: '0 4 * * *' # Daily at 4 AM
+    region: oregon
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -270,8 +274,10 @@ cronJobs:
           property: connectionString
 
   - name: send-trial-reminders
+    runtime: image
     dockerfilePath: ./infrastructure/reminders/Dockerfile
     schedule: '0 10 * * *' # Daily at 10 AM
+    region: oregon
     envVars:
       - key: DATABASE_URL
         fromDatabase:
