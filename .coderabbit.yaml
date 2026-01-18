@@ -1,0 +1,85 @@
+# CodeRabbit Configuration
+# Documentation: https://docs.coderabbit.ai/guides/configure-coderabbit
+
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  path_filters:
+    - "!**/*.lock"
+    - "!**/node_modules/**"
+    - "!**/.next/**"
+    - "!**/dist/**"
+    - "!**/*.min.js"
+    - "!**/coverage/**"
+    - "!**/*.generated.*"
+    - "!**/.strapi/**"
+
+  path_instructions:
+    - path: "services/web/**/*.tsx"
+      instructions: |
+        Focus on React/Next.js best practices:
+        - Proper hook usage and dependencies
+        - Server vs client component patterns
+        - Accessibility (a11y) considerations
+        - TypeScript type safety
+
+    - path: "services/web/**/*.ts"
+      instructions: |
+        Check for:
+        - Proper TypeScript types (no 'any')
+        - Error handling patterns
+        - Next.js 15 patterns
+
+    - path: "services/api/**/*.ts"
+      instructions: |
+        Review Fastify API code for:
+        - Input validation
+        - Error handling
+        - Authentication/authorization
+        - Rate limiting considerations
+
+    - path: "services/payments/**/*.ts"
+      instructions: |
+        Review payment code for:
+        - Stripe integration best practices
+        - Security considerations
+        - Error handling for payment failures
+        - Idempotency
+
+    - path: "services/cms/**/*.ts"
+      instructions: |
+        Review Strapi customizations for:
+        - Content type consistency
+        - Plugin integration
+        - Security
+
+    - path: "packages/**/*.ts"
+      instructions: |
+        Review shared packages for:
+        - Proper exports
+        - Type definitions
+        - Reusability
+
+    - path: "**/*.test.{ts,tsx}"
+      instructions: |
+        Ensure tests are:
+        - Testing behavior, not implementation
+        - Using proper assertions
+        - Covering edge cases
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+      - develop
+
+chat:
+  auto_reply: true
