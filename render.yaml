@@ -287,7 +287,7 @@ databases:
   - name: focusflow-db
     databaseName: focusflow_production
     user: focusflow_admin
-    plan: basic
+    plan: basic-256mb
     region: oregon
     version: "15"
 
