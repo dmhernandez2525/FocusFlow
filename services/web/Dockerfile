@@ -10,12 +10,19 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy package files
-COPY package.json pnpm-lock.yaml* ./
+# Copy root package files and workspace configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy ALL workspace package.json files (required for pnpm workspace resolution)
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
+COPY services/web/package.json ./services/web/
+COPY services/cms/package.json ./services/cms/
+COPY services/payments/package.json ./services/payments/
+COPY services/queue/package.json ./services/queue/
+COPY services/worker/package.json ./services/worker/
 
-# Install dependencies
+# Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -25,21 +32,24 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy all files first
+# Copy all files
 COPY . .
 
-# Copy node_modules from deps stage
+# Copy node_modules from deps stage (pnpm hoists to root)
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
+COPY --from=deps /app/services/web/node_modules ./services/web/node_modules
 
-# Install workspace dependencies (allow lockfile updates for workspace packages)
-RUN pnpm install
+# Build the types package first (dependency for web)
+RUN cd packages/types && pnpm run build
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
 # Build only the web application
-RUN pnpm run build --filter @focusflow/web
+RUN cd services/web && pnpm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -52,17 +62,20 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the public folder
-COPY --from=builder /app/public ./public
-
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/.next/static ./.next/static
+
+# Copy healthcheck script
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/healthcheck.js ./healthcheck.js
+
+# Copy public folder
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/public ./public
 
 # Switch to non-root user
 USER nextjs
