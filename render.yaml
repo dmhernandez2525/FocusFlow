@@ -125,19 +125,8 @@ services:
         value: /dashboard
     pullRequestPreviewsEnabled: true
     autoDeploy: false
-    headers:
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
-        name: X-XSS-Protection
-        value: 1; mode=block
-      - path: /*
-        name: Referrer-Policy
-        value: strict-origin-when-cross-origin
+    # Note: Security headers should be configured in Next.js middleware or next.config.js
+    # since headers are only supported for static sites on Render
 
   # ===========================================
   # BACKGROUND WORKER
