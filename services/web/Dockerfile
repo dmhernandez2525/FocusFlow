@@ -21,6 +21,7 @@ COPY services/cms/package.json ./services/cms/
 COPY services/payments/package.json ./services/payments/
 COPY services/queue/package.json ./services/queue/
 COPY services/worker/package.json ./services/worker/
+COPY services/bull-board/package.json ./services/bull-board/
 
 # Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile

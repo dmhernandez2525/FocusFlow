@@ -52,6 +52,24 @@ importers:
         specifier: ^5.5.0
         version: 5.9.2
 
+  services/bull-board:
+    dependencies:
+      '@bull-board/api':
+        specifier: ^5.14.2
+        version: 5.23.0(@bull-board/ui@5.23.0)
+      '@bull-board/express':
+        specifier: ^5.14.2
+        version: 5.23.0
+      bullmq:
+        specifier: 5.58.9
+        version: 5.58.9
+      express:
+        specifier: ^4.19.2
+        version: 4.22.1
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.9.2
+
   services/cms:
     dependencies:
       '@strapi/plugin-i18n':
@@ -18133,7 +18151,7 @@ snapshots:
       postcss-modules-scope: 3.2.1(postcss@8.5.6)
       postcss-modules-values: 4.0.0(postcss@8.5.6)
       postcss-value-parser: 4.2.0
-      semver: 7.5.4
+      semver: 7.7.3
     optionalDependencies:
       webpack: 5.104.1(esbuild@0.19.11)
 
@@ -19420,7 +19438,7 @@ snapshots:
       minimatch: 3.1.2
       node-abort-controller: 3.1.1
       schema-utils: 3.3.0
-      semver: 7.5.4
+      semver: 7.7.3
       tapable: 2.3.0
       typescript: 5.2.2
       webpack: 5.104.1(esbuild@0.19.11)
