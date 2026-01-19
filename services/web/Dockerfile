@@ -36,8 +36,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
-# Build the application
-RUN pnpm run build
+# Build only the web application
+RUN pnpm run build --filter @focusflow/web
 
 # Production image, copy all the files and run next
 FROM base AS runner
