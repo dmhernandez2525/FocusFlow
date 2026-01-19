@@ -25,12 +25,14 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-
-# Copy source code
+# Copy all files first
 COPY . .
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Install workspace dependencies
+RUN pnpm install --frozen-lockfile
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1
