@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { TaskStatus, TaskPriority } from '@prisma/client'
 import { z } from 'zod'
 
 const updateTaskSchema = z.object({
@@ -98,7 +99,11 @@ export async function PATCH(
     const task = await prisma.task.update({
       where: { id: params.id },
       data: {
-        ...validatedData,
+        title: validatedData.title,
+        description: validatedData.description,
+        status: validatedData.status as TaskStatus | undefined,
+        priority: validatedData.priority as TaskPriority | undefined,
+        projectId: validatedData.projectId,
         dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : validatedData.dueDate,
       },
       include: {

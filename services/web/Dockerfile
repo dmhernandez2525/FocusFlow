@@ -45,6 +45,9 @@ COPY --from=deps /app/services/web/node_modules ./services/web/node_modules
 # Build the types package first (dependency for web)
 RUN cd packages/types && pnpm run build
 
+# Generate Prisma client
+RUN cd services/web && npx prisma generate
+
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
