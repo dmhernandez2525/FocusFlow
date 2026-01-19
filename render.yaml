@@ -289,7 +289,6 @@ databases:
     user: focusflow_admin
     plan: basic-256mb
     region: oregon
-    version: "15"
 
 # ===========================================
 # ENVIRONMENT GROUPS
