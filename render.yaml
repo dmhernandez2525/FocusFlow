@@ -5,7 +5,7 @@ services:
   - type: web
     name: focusflow-cms
     runtime: docker
-    plan: standard
+    plan: starter
     region: oregon
     dockerfilePath: ./services/cms/Dockerfile
     envVars:
@@ -56,7 +56,7 @@ services:
   - type: web
     name: focusflow-payments
     runtime: docker
-    plan: standard
+    plan: starter
     region: oregon
     dockerfilePath: ./services/payments/Dockerfile
     envVars:
@@ -95,7 +95,7 @@ services:
   - type: web
     name: focusflow-web
     runtime: docker
-    plan: standard
+    plan: starter
     region: oregon
     dockerfilePath: ./services/web/Dockerfile
     envVars:
@@ -287,7 +287,7 @@ databases:
   - name: focusflow-db
     databaseName: focusflow_production
     user: focusflow_admin
-    plan: standard
+    plan: basic
     region: oregon
     version: "15"
 
