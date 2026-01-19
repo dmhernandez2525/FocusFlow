@@ -22,15 +22,50 @@ const QUEUE_NAMES = [
   'workflow'
 ];
 
-// Create Redis connection
-const redisConnection = new Redis({
-  host: REDIS_HOST,
-  port: REDIS_PORT,
-  password: REDIS_PASSWORD,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-  lazyConnect: true
-});
+// Create Redis connection (lazy connect - won't fail immediately if Redis unavailable)
+let redisConnection = null;
+let redisConnected = false;
+
+function createRedisConnection() {
+  const connection = new Redis({
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+    password: REDIS_PASSWORD,
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+    lazyConnect: true,
+    retryStrategy: (times) => {
+      if (times > 3) {
+        console.log('Redis connection failed after 3 retries');
+        return null; // Stop retrying
+      }
+      return Math.min(times * 100, 3000);
+    }
+  });
+
+  connection.on('connect', () => {
+    console.log('Redis connected');
+    redisConnected = true;
+  });
+
+  connection.on('error', (err) => {
+    console.error('Redis error:', err.message);
+    redisConnected = false;
+  });
+
+  connection.on('close', () => {
+    console.log('Redis connection closed');
+    redisConnected = false;
+  });
+
+  return connection;
+}
+
+if (REDIS_HOST) {
+  redisConnection = createRedisConnection();
+} else {
+  console.log('REDIS_HOST not configured - running in demo mode');
+}
 
 // Create Express app
 const app = express();
@@ -59,6 +94,17 @@ const basicAuth = (req, res, next) => {
 // Health check endpoint (no auth required)
 app.get('/health', async (req, res) => {
   try {
+    if (!redisConnection) {
+      // No Redis configured - return healthy but note Redis is not configured
+      return res.status(200).json({
+        status: 'healthy',
+        service: 'bull-board',
+        redis: 'not_configured',
+        message: 'Running in demo mode - configure REDIS_HOST to connect to queues',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Check Redis connection
     await redisConnection.ping();
     res.status(200).json({
@@ -68,8 +114,10 @@ app.get('/health', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    res.status(503).json({
-      status: 'unhealthy',
+    // Return 200 for health check even if Redis is down
+    // The service is running, just not fully functional
+    res.status(200).json({
+      status: 'degraded',
       service: 'bull-board',
       redis: 'disconnected',
       error: error.message,
@@ -82,18 +130,21 @@ app.get('/health', async (req, res) => {
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/');
 
-// Create queue instances
-const queues = QUEUE_NAMES.map(name => {
-  return new Queue(name, {
-    connection: {
-      host: REDIS_HOST,
-      port: REDIS_PORT,
-      password: REDIS_PASSWORD,
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false
-    }
+// Create queue instances only if Redis is configured
+let queues = [];
+if (REDIS_HOST) {
+  queues = QUEUE_NAMES.map(name => {
+    return new Queue(name, {
+      connection: {
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+        password: REDIS_PASSWORD,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false
+      }
+    });
   });
-});
+}
 
 // Create Bull Board
 createBullBoard({
@@ -120,20 +171,30 @@ createBullBoard({
   }
 });
 
-// Apply basic auth to Bull Board routes
+// Apply basic auth to Bull Board routes (except health check)
 app.use('/', basicAuth, serverAdapter.getRouter());
 
 // Start server
 async function start() {
   try {
-    // Connect to Redis
-    await redisConnection.connect();
-    console.log('Connected to Redis');
+    // Connect to Redis if configured
+    if (redisConnection) {
+      try {
+        await redisConnection.connect();
+        console.log('Connected to Redis');
+      } catch (error) {
+        console.error('Failed to connect to Redis:', error.message);
+        console.log('Continuing without Redis connection...');
+      }
+    }
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Bull Board running on port ${PORT}`);
       console.log(`Dashboard available at: http://localhost:${PORT}/`);
       console.log(`Health check available at: http://localhost:${PORT}/health`);
+      if (!REDIS_HOST) {
+        console.log('Note: REDIS_HOST not configured - running in demo mode');
+      }
     });
   } catch (error) {
     console.error('Failed to start Bull Board:', error);
@@ -144,13 +205,17 @@ async function start() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down...');
-  await redisConnection.quit();
+  if (redisConnection) {
+    await redisConnection.quit();
+  }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('Received SIGINT, shutting down...');
-  await redisConnection.quit();
+  if (redisConnection) {
+    await redisConnection.quit();
+  }
   process.exit(0);
 });
 
