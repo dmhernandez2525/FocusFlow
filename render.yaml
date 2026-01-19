@@ -230,7 +230,7 @@ services:
     healthCheckPath: /health
     autoDeploy: false
 
-# ===========================================
+  # ===========================================
   # CRON JOBS - Added as services with type: cron
   # ===========================================
   - type: cron
