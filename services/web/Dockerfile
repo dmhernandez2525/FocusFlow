@@ -31,8 +31,8 @@ COPY . .
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-# Install workspace dependencies
-RUN pnpm install --frozen-lockfile
+# Install workspace dependencies (allow lockfile updates for workspace packages)
+RUN pnpm install
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1
