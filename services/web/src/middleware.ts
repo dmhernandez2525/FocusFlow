@@ -1,47 +1,40 @@
-import { withAuth } from 'next-auth/middleware'
+import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 
-export default withAuth(
-  function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl
+export default auth((req) => {
+  const { pathname } = req.nextUrl
+  const isAuthenticated = !!req.auth
 
-    // Redirect root to dashboard if authenticated
-    if (pathname === '/' && request.nextauth.token) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    // Redirect to login if accessing protected routes without auth
-    if (
-      pathname.startsWith('/dashboard') ||
-      pathname.startsWith('/tasks') ||
-      pathname.startsWith('/focus') ||
-      pathname.startsWith('/analytics') ||
-      pathname.startsWith('/settings')
-    ) {
-      if (!request.nextauth.token) {
-        const url = new URL('/login', request.url)
-        url.searchParams.set('callbackUrl', request.url)
-        return NextResponse.redirect(url)
-      }
-    }
-
-    // Redirect to dashboard if accessing auth routes while authenticated
-    if (
-      (pathname.startsWith('/login') || pathname.startsWith('/signup')) &&
-      request.nextauth.token
-    ) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: () => true, // We handle authorization in the middleware function above
-    },
+  // Redirect root to dashboard if authenticated
+  if (pathname === '/' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
-)
+
+  // Redirect to login if accessing protected routes without auth
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/tasks') ||
+    pathname.startsWith('/focus') ||
+    pathname.startsWith('/analytics') ||
+    pathname.startsWith('/settings')
+  ) {
+    if (!isAuthenticated) {
+      const url = new URL('/login', req.url)
+      url.searchParams.set('callbackUrl', req.url)
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Redirect to dashboard if accessing auth routes while authenticated
+  if (
+    (pathname.startsWith('/login') || pathname.startsWith('/signup')) &&
+    isAuthenticated
+  ) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  return NextResponse.next()
+})
 
 export const config = {
   matcher: [

@@ -51,7 +51,7 @@ export interface ApiErrorResponse {
   };
 }
 
-export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+export type ApiResponseUnion<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 export interface ResponseMetadata {
   timestamp: string;

@@ -98,11 +98,11 @@ export interface SessionTimelineItem {
 
 export interface SessionAvailability {
   date: ISODateString;
-  available_slots: TimeSlot[];
-  booked_slots: TimeSlot[];
+  available_slots: SessionTimeSlot[];
+  booked_slots: SessionTimeSlot[];
 }
 
-export interface TimeSlot {
+export interface SessionTimeSlot {
   start_time: string; // HH:MM format
   end_time: string; // HH:MM format
   is_available: boolean;

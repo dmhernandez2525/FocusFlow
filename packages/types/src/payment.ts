@@ -1,4 +1,4 @@
-import { UUID, ISODateString, Money, Timestamps } from './common';
+import { UUID, ISODateString, Timestamps } from './common';
 
 export type PaymentType =
   | 'deposit'

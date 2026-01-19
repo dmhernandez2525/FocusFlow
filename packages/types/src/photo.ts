@@ -1,4 +1,4 @@
-import { UUID, ISODateString, URL, Timestamps, S3Location } from './common';
+import { UUID, ISODateString, URL, Timestamps } from './common';
 
 export type PhotoProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed';
 export type PhotoOrientation = 'portrait' | 'landscape' | 'square';
@@ -74,7 +74,7 @@ export interface Photo extends Timestamps {
 
 export interface PhotoUploadRequest {
   gallery_id: UUID;
-  files: File[] | FileList;
+  files: File[];
   auto_process?: boolean;
   apply_watermark?: boolean;
   preserve_metadata?: boolean;
