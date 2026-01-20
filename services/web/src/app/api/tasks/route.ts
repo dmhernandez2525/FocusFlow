@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { TaskStatus, TaskPriority } from '@prisma/client'
 import { z } from 'zod'
 
 const createTaskSchema = z.object({
@@ -10,6 +11,14 @@ const createTaskSchema = z.object({
   dueDate: z.string().datetime().optional(),
   projectId: z.string().optional(),
 })
+
+const isValidTaskStatus = (value: string): value is TaskStatus => {
+  return ['TODO', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(value)
+}
+
+const isValidTaskPriority = (value: string): value is TaskPriority => {
+  return ['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(value)
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,8 +38,8 @@ export async function GET(request: NextRequest) {
 
     const where = {
       userId: session.user.id,
-      ...(status && { status }),
-      ...(priority && { priority }),
+      ...(status && isValidTaskStatus(status) && { status }),
+      ...(priority && isValidTaskPriority(priority) && { priority }),
       ...(projectId && { projectId }),
     }
 
@@ -76,8 +85,11 @@ export async function POST(request: NextRequest) {
 
     const task = await prisma.task.create({
       data: {
-        ...validatedData,
-        userId: session.user.id,
+        title: validatedData.title,
+        description: validatedData.description,
+        priority: validatedData.priority as TaskPriority,
+        projectId: validatedData.projectId,
+        userId: session.user.id!,
         dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
       },
       include: {

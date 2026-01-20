@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { TaskStatus, TaskPriority } from '@prisma/client'
 import { z } from 'zod'
 
 const updateTaskSchema = z.object({
@@ -12,15 +13,13 @@ const updateTaskSchema = z.object({
   projectId: z.string().optional().nullable(),
 })
 
-interface RouteParams {
-  readonly params: {
-    readonly id: string
-  }
+type RouteContext = {
+  params: Promise<{ id: string }>
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext
 ) {
   try {
     const session = await auth()
@@ -32,9 +31,11 @@ export async function GET(
       )
     }
 
+    const { id } = await context.params
+
     const task = await prisma.task.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       include: {
@@ -66,7 +67,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext
 ) {
   try {
     const session = await auth()
@@ -78,12 +79,13 @@ export async function PATCH(
       )
     }
 
+    const { id } = await context.params
     const body = await request.json()
     const validatedData = updateTaskSchema.parse(body)
 
     const existingTask = await prisma.task.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     })
@@ -96,9 +98,13 @@ export async function PATCH(
     }
 
     const task = await prisma.task.update({
-      where: { id: params.id },
+      where: { id },
       data: {
-        ...validatedData,
+        title: validatedData.title,
+        description: validatedData.description,
+        status: validatedData.status as TaskStatus | undefined,
+        priority: validatedData.priority as TaskPriority | undefined,
+        projectId: validatedData.projectId,
         dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : validatedData.dueDate,
       },
       include: {
@@ -132,7 +138,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext
 ) {
   try {
     const session = await auth()
@@ -144,9 +150,11 @@ export async function DELETE(
       )
     }
 
+    const { id } = await context.params
+
     const existingTask = await prisma.task.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     })
@@ -159,7 +167,7 @@ export async function DELETE(
     }
 
     await prisma.task.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json(

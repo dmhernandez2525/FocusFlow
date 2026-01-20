@@ -2,18 +2,18 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   // Enable Turbopack for development
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
-    serverComponentsExternalPackages: [],
+  },
+  experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  serverExternalPackages: [],
 
   // TypeScript configuration
   typescript: {
