@@ -16,12 +16,12 @@ COPY --chown=payment-service:nodejs package*.json ./
 
 # Install dependencies
 FROM base AS deps
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --only=production && npm cache clean --force
 
 # Build stage
 FROM base AS build
 COPY --chown=payment-service:nodejs . .
-RUN npm ci && \
+RUN npm install && \
     npm run build && \
     npm prune --production
 
