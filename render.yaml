@@ -104,6 +104,18 @@ services:
         value: production
       - key: PORT
         value: "10000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: focusflow-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: NEXTAUTH_URL
+        value: https://focusflow-web.onrender.com
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
       - key: NEXT_PUBLIC_API_URL
         value: https://api.focusflow.com
       - key: NEXT_PUBLIC_PAYMENTS_URL
@@ -124,6 +136,7 @@ services:
         value: /dashboard
       - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
         value: /dashboard
+    healthCheckPath: /api/health
     pullRequestPreviewsEnabled: true
     autoDeploy: false
     # Note: Security headers should be configured in Next.js middleware or next.config.js

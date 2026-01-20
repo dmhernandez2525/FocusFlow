@@ -66,33 +66,33 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
+# Note: In a monorepo, standalone output preserves the directory structure
 COPY --from=builder --chown=nextjs:nodejs /app/services/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/services/web/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/.next/static ./services/web/.next/static
 
-# Copy healthcheck script
-COPY --from=builder --chown=nextjs:nodejs /app/services/web/healthcheck.js ./healthcheck.js
+# Copy healthcheck script to the app working directory
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/healthcheck.js ./services/web/healthcheck.js
 
-# Copy public folder
-COPY --from=builder --chown=nextjs:nodejs /app/services/web/public ./public
+# Copy public folder to the correct location
+COPY --from=builder --chown=nextjs:nodejs /app/services/web/public ./services/web/public
+
+# Set the correct permission for prerender cache
+RUN mkdir -p ./services/web/.next
+RUN chown nextjs:nodejs ./services/web/.next
 
 # Switch to non-root user
 USER nextjs
 
-# Expose port
-EXPOSE 3000
+# Set working directory to the web service
+WORKDIR /app/services/web
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+# Expose port (Render uses PORT env var, typically 10000)
+EXPOSE 10000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD node /app/healthcheck.js || exit 1
+# Don't hardcode PORT - let Render's PORT env var take precedence
+ENV HOSTNAME="0.0.0.0"
 
 # Start the application
 CMD ["node", "server.js"]
