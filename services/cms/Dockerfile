@@ -46,18 +46,11 @@ RUN pnpm install --frozen-lockfile
 # Copy all source code
 COPY . .
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S strapi -u 1001 -G nodejs
+# Create public directory if it doesn't exist (Strapi expects it)
+RUN mkdir -p services/cms/public
 
-# Set ownership
-RUN chown -R strapi:nodejs /app
-
-# Switch to non-root user
-USER strapi
-
-# Build the CMS application
-RUN cd services/cms && pnpm run build
+# Build the CMS application with NODE_ENV=production (required by Strapi)
+RUN cd services/cms && NODE_ENV=production pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production
