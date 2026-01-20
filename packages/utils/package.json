@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "echo 'Build skipped - implementation incomplete'",
+    "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist node_modules"
   },

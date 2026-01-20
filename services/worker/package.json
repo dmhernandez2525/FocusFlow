@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "echo 'Build skipped - TypeScript strict mode to be configured'",
+    "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "lint": "echo 'Lint skipped - ESLint 9 config to be configured'",
