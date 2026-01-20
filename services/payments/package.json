@@ -4,7 +4,7 @@
   "description": "High-performance Fastify payment service with Stripe integration",
   "main": "dist/app.js",
   "scripts": {
-    "build": "echo 'Build skipped - TypeScript strict mode to be configured'",
+    "build": "tsc",
     "start": "node dist/app.js",
     "dev": "tsx watch src/app.ts",
     "lint": "echo 'Lint skipped - ESLint 9 config to be configured'",

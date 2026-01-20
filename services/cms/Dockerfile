@@ -1,6 +1,8 @@
 # =================================
 # FOCUSFLOW CMS DOCKERFILE
-# Strapi v5.23.1 with Node.js 20 Alpine
+# Strapi with Node.js 20 Alpine
+# NOTE: This Dockerfile expects to be built from the REPO ROOT
+# e.g., docker build -f services/cms/Dockerfile .
 # =================================
 
 # Build stage
@@ -22,27 +24,33 @@ RUN apk add --no-cache \
     vips-dev \
     git
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Install pnpm
+RUN npm install -g pnpm
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Copy root package files and workspace configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copy source code
+# Copy ALL workspace package.json files (required for pnpm workspace resolution)
+COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
+COPY services/web/package.json ./services/web/
+COPY services/cms/package.json ./services/cms/
+COPY services/payments/package.json ./services/payments/
+COPY services/queue/package.json ./services/queue/
+COPY services/worker/package.json ./services/worker/
+COPY services/bull-board/package.json ./services/bull-board/
+
+# Install dependencies with frozen lockfile
+RUN pnpm install --frozen-lockfile
+
+# Copy all source code
 COPY . .
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S strapi -u 1001 -G nodejs
+# Create public directory if it doesn't exist (Strapi expects it)
+RUN mkdir -p services/cms/public
 
-# Set ownership
-RUN chown -R strapi:nodejs /app
-
-# Switch to non-root user
-USER strapi
-
-# Build the application
-RUN npm run build
+# Build the CMS application with NODE_ENV=production (required by Strapi)
+RUN cd services/cms && NODE_ENV=production pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production
@@ -52,6 +60,9 @@ RUN apk add --no-cache \
     vips-dev \
     dumb-init
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Create app directory
 WORKDIR /app
 
@@ -59,19 +70,32 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S strapi -u 1001 -G nodejs
 
+# Copy package files for production install
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-lock.yaml ./
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/packages/types/package.json ./packages/types/
+COPY --from=builder /app/packages/utils/package.json ./packages/utils/
+COPY --from=builder /app/services/cms/package.json ./services/cms/
+
 # Copy built application from builder stage
-COPY --from=builder --chown=strapi:nodejs /app/build ./build
-COPY --from=builder --chown=strapi:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=strapi:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=strapi:nodejs /app/config ./config
-COPY --from=builder --chown=strapi:nodejs /app/public ./public
+COPY --from=builder --chown=strapi:nodejs /app/services/cms/build ./services/cms/build
+COPY --from=builder --chown=strapi:nodejs /app/services/cms/config ./services/cms/config
+COPY --from=builder --chown=strapi:nodejs /app/services/cms/public ./services/cms/public
+COPY --from=builder --chown=strapi:nodejs /app/services/cms/src ./services/cms/src
+
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
 
 # Create necessary directories
-RUN mkdir -p .cache .tmp uploads && \
-    chown -R strapi:nodejs .cache .tmp uploads
+RUN mkdir -p services/cms/.cache services/cms/.tmp services/cms/uploads && \
+    chown -R strapi:nodejs services/cms/.cache services/cms/.tmp services/cms/uploads
 
 # Switch to non-root user
 USER strapi
+
+# Set working directory to the CMS service
+WORKDIR /app/services/cms
 
 # Expose port
 EXPOSE 1337
@@ -90,13 +114,3 @@ ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
 CMD ["node", "build/index.js"]
-
-# Multi-stage build labels
-LABEL maintainer="FocusFlow Team <dev@focusflow.com>"
-LABEL description="FocusFlow CMS powered by Strapi v5.23.1"
-LABEL version="1.0.0"
-LABEL org.opencontainers.image.title="FocusFlow CMS"
-LABEL org.opencontainers.image.description="Production-ready Strapi CMS for FocusFlow"
-LABEL org.opencontainers.image.vendor="FocusFlow"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.source="https://github.com/focusflow/cms"
