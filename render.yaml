@@ -94,7 +94,7 @@ services:
   # NEXT.JS FRONTEND
   # ===========================================
   - type: web
-    name: focusflow-web
+    name: focusflow-site
     runtime: docker
     plan: starter
     region: oregon
@@ -111,7 +111,7 @@ services:
       - key: AUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL
-        value: https://focusflow-web.onrender.com
+        value: https://focusflow-site.onrender.com
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
