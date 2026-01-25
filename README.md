@@ -79,6 +79,35 @@ pnpm db:seed        # Run seed files
 pnpm db:reset       # Reset database
 ```
 
+## Deployment
+
+### Render.com
+
+Configured via `render.yaml`. After creating the Blueprint, set these env vars in the Render Dashboard:
+
+**Critical - Must Set:**
+| Variable | Services | Description |
+|----------|----------|-------------|
+| `REDIS_HOST` | cms, payments, worker, image-processor, bull-board | Redis connection host (e.g., `redis-xxxxx.render.com`) |
+| `AWS_ACCESS_KEY_ID` | cms, worker, image-processor, backup | AWS S3 access key |
+| `AWS_SECRET_ACCESS_KEY` | cms, worker, image-processor, backup | AWS S3 secret key |
+| `STRIPE_SECRET_KEY` | payments | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | payments | Stripe webhook secret |
+| `CLERK_SECRET_KEY` | web | Clerk auth secret key |
+| `SENDGRID_API_KEY` | cms, worker, reminders | SendGrid email API key |
+
+**Frontend:**
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth secret |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key |
+| `NEXT_PUBLIC_STRIPE_KEY` | Stripe publishable key |
+
+**Auto-configured:** DATABASE_URL, JWT_SECRET, AUTH_SECRET, API_TOKEN_SALT, etc.
+
+**Note:** Create a managed Redis instance on Render first and update `REDIS_HOST` for all services.
+
 ## Project Status
 
 **Current Phase**: Infrastructure Setup
