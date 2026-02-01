@@ -10,7 +10,6 @@ import {
   Users,
   Eye,
   ArrowUpRight,
-  ArrowDownRight,
   Clock,
   ImageIcon,
 } from 'lucide-react'

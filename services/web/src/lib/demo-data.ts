@@ -83,8 +83,9 @@ export interface DemoMetrics {
 
 // Sample photos using placeholder images
 const createDemoPhotos = (galleryId: string, count: number): DemoPhoto[] => {
-  const categories = ['portrait', 'wedding', 'nature', 'urban', 'event']
-  const category = categories[parseInt(galleryId.slice(-1)) % categories.length]
+  const categories = ['portrait', 'wedding', 'nature', 'urban', 'event'] as const
+  const categoryIndex = parseInt(galleryId.slice(-1)) % categories.length
+  const category = categories[categoryIndex] ?? 'portrait'
 
   return Array.from({ length: count }, (_, i) => ({
     id: `${galleryId}-photo-${i + 1}`,
@@ -473,6 +474,54 @@ export const demoChartData = [
   { month: 'Jan', revenue: 15850 },
 ]
 
+// Role-specific demo users
+export type DemoRole = 'photographer' | 'assistant' | 'admin'
+
+export interface DemoUser {
+  id: string
+  name: string
+  email: string
+  businessName: string
+  avatarUrl: string
+  subscriptionTier: 'starter' | 'professional' | 'studio'
+  subscriptionStatus: 'active' | 'trial' | 'inactive'
+  role: DemoRole
+}
+
+export const demoUsers: Record<DemoRole, DemoUser> = {
+  photographer: {
+    id: 'demo-photographer',
+    name: 'Sarah Mitchell',
+    email: 'sarah@focusflow.app',
+    businessName: 'Mitchell Photography Studio',
+    avatarUrl: 'https://i.pravatar.cc/150?u=sarah-photographer',
+    subscriptionTier: 'professional',
+    subscriptionStatus: 'active',
+    role: 'photographer',
+  },
+  assistant: {
+    id: 'demo-assistant',
+    name: 'Alex Rivera',
+    email: 'alex@focusflow.app',
+    businessName: 'Mitchell Photography Studio',
+    avatarUrl: 'https://i.pravatar.cc/150?u=alex-assistant',
+    subscriptionTier: 'professional',
+    subscriptionStatus: 'active',
+    role: 'assistant',
+  },
+  admin: {
+    id: 'demo-admin',
+    name: 'Jordan Chen',
+    email: 'jordan@focusflow.app',
+    businessName: 'Mitchell Photography Studio',
+    avatarUrl: 'https://i.pravatar.cc/150?u=jordan-admin',
+    subscriptionTier: 'studio',
+    subscriptionStatus: 'active',
+    role: 'admin',
+  },
+}
+
+// Default demo user for backwards compatibility
 export const demoUser = {
   id: 'demo-user',
   name: 'Demo Photographer',
@@ -481,7 +530,57 @@ export const demoUser = {
   avatarUrl: 'https://i.pravatar.cc/150?u=demo',
   subscriptionTier: 'professional' as const,
   subscriptionStatus: 'active' as const,
+  role: 'photographer' as const,
 }
+
+// Helper to get demo user by role
+export function getDemoUserByRole(role: DemoRole): DemoUser {
+  return demoUsers[role] || demoUsers.photographer
+}
+
+// Team members for admin view
+export const demoTeamMembers = [
+  {
+    id: 'team-1',
+    name: 'Sarah Mitchell',
+    email: 'sarah@mitchellphoto.com',
+    role: 'photographer' as const,
+    avatarUrl: 'https://i.pravatar.cc/150?u=sarah-photographer',
+    sessionsThisMonth: 12,
+    revenueThisMonth: 8500,
+    status: 'active' as const,
+  },
+  {
+    id: 'team-2',
+    name: 'Alex Rivera',
+    email: 'alex@mitchellphoto.com',
+    role: 'assistant' as const,
+    avatarUrl: 'https://i.pravatar.cc/150?u=alex-assistant',
+    sessionsThisMonth: 0,
+    revenueThisMonth: 0,
+    status: 'active' as const,
+  },
+  {
+    id: 'team-3',
+    name: 'Jordan Chen',
+    email: 'jordan@mitchellphoto.com',
+    role: 'admin' as const,
+    avatarUrl: 'https://i.pravatar.cc/150?u=jordan-admin',
+    sessionsThisMonth: 0,
+    revenueThisMonth: 0,
+    status: 'active' as const,
+  },
+  {
+    id: 'team-4',
+    name: 'Marcus Lee',
+    email: 'marcus@mitchellphoto.com',
+    role: 'photographer' as const,
+    avatarUrl: 'https://i.pravatar.cc/150?u=marcus',
+    sessionsThisMonth: 8,
+    revenueThisMonth: 5200,
+    status: 'active' as const,
+  },
+]
 
 // Session types offered
 export const sessionTypes = [
