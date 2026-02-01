@@ -23,8 +23,11 @@ function DemoRoleSelector() {
   const router = useRouter()
 
   const handleDemoLogin = (role: 'photographer' | 'assistant' | 'admin') => {
+    // Store the demo role and demo mode flag
     localStorage.setItem('focusflow-demo-role', role)
-    router.push(`/demo/${role === 'photographer' ? 'dashboard' : role}`)
+    localStorage.setItem('focusflow-demo-mode', 'true')
+    // Navigate to the main dashboard (not demo-specific routes)
+    router.push('/dashboard')
   }
 
   return (
@@ -49,7 +52,7 @@ function DemoRoleSelector() {
           </div>
           <div>
             <div className="font-medium group-hover:text-primary transition-colors">
-              Continue as Photographer
+              Sign in as Photographer
             </div>
             <div className="text-sm text-muted-foreground">
               Full access to galleries, clients, sessions, and analytics
@@ -66,7 +69,7 @@ function DemoRoleSelector() {
           </div>
           <div>
             <div className="font-medium group-hover:text-blue-500 transition-colors">
-              Continue as Assistant
+              Sign in as Assistant
             </div>
             <div className="text-sm text-muted-foreground">
               Manage bookings, client communications, and scheduling
@@ -83,7 +86,7 @@ function DemoRoleSelector() {
           </div>
           <div>
             <div className="font-medium group-hover:text-amber-500 transition-colors">
-              Continue as Studio Admin
+              Sign in as Studio Admin
             </div>
             <div className="text-sm text-muted-foreground">
               Manage team, view reports, and configure studio settings
