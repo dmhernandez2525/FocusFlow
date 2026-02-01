@@ -136,6 +136,9 @@ services:
         value: /dashboard
       - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
         value: /dashboard
+      # Demo mode - enables the app without real auth for showcasing
+      - key: NEXT_PUBLIC_DEMO_MODE
+        value: "true"
     healthCheckPath: /api/health
     pullRequestPreviewsEnabled: true
     autoDeploy: false
