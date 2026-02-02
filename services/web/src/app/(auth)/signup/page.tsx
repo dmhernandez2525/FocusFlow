@@ -23,8 +23,11 @@ function DemoRoleSelector() {
   const router = useRouter()
 
   const handleDemoLogin = (role: 'photographer' | 'assistant' | 'admin') => {
+    // Store the demo role and demo mode flag
     localStorage.setItem('focusflow-demo-role', role)
-    router.push(`/demo/${role === 'photographer' ? 'dashboard' : role}`)
+    localStorage.setItem('focusflow-demo-mode', 'true')
+    // Navigate to the main dashboard (not demo-specific routes)
+    router.push('/dashboard')
   }
 
   return (
