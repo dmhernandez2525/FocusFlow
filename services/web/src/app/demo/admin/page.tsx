@@ -34,14 +34,14 @@ export default function DemoAdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Studio Admin Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Studio Admin Dashboard</h1>
         <p className="text-muted-foreground">
           Manage your team, view reports, and configure studio settings.
         </p>
       </div>
 
       {/* Key Business Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
@@ -178,7 +178,7 @@ export default function DemoAdminPage() {
           <CardDescription>Administrative settings and configurations</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Button variant="outline" className="h-auto p-4 flex flex-col items-start gap-2">
               <Users className="h-5 w-5 text-primary" />
               <div className="text-left">

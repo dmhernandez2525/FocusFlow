@@ -28,14 +28,14 @@ function RegularDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome to your productivity dashboard.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border bg-card p-4 sm:p-6 text-card-foreground shadow-sm">
           <div className="flex items-center space-y-0 pb-2">
             <CheckSquare className="mr-2 h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-medium">Total Tasks</h3>
@@ -44,7 +44,7 @@ function RegularDashboard() {
           <p className="text-xs text-muted-foreground">+2 from yesterday</p>
         </div>
 
-        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="rounded-lg border bg-card p-4 sm:p-6 text-card-foreground shadow-sm">
           <div className="flex items-center space-y-0 pb-2">
             <CheckSquare className="mr-2 h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-medium">Completed</h3>
@@ -53,7 +53,7 @@ function RegularDashboard() {
           <p className="text-xs text-muted-foreground">+6 from yesterday</p>
         </div>
 
-        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="rounded-lg border bg-card p-4 sm:p-6 text-card-foreground shadow-sm">
           <div className="flex items-center space-y-0 pb-2">
             <Timer className="mr-2 h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-medium">Focus Time</h3>
@@ -62,7 +62,7 @@ function RegularDashboard() {
           <p className="text-xs text-muted-foreground">+0.5h from yesterday</p>
         </div>
 
-        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="rounded-lg border bg-card p-4 sm:p-6 text-card-foreground shadow-sm">
           <div className="flex items-center space-y-0 pb-2">
             <BarChart3 className="mr-2 h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-medium">Productivity</h3>
@@ -114,14 +114,14 @@ function DemoDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome back! Here&apos;s what&apos;s happening with your photography business.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -180,7 +180,7 @@ function DemoDashboard() {
       </div>
 
       {/* Revenue Chart and Upcoming Sessions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
         {/* Revenue Overview */}
         <Card className="lg:col-span-4">
           <CardHeader>
@@ -245,7 +245,7 @@ function DemoDashboard() {
       </div>
 
       {/* Recent Galleries and Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
         {/* Recent Galleries */}
         <Card>
           <CardHeader>
@@ -330,7 +330,7 @@ function DemoDashboard() {
           <CardDescription>Outstanding payments and invoices</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <div className="p-4 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground">Pending Invoices</p>
               <p className="text-2xl font-bold">{metrics.pendingInvoices}</p>

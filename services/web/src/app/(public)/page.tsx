@@ -125,11 +125,11 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="bg-card rounded-lg p-6 border shadow-sm hover:shadow-md transition-shadow"
+                className="bg-card rounded-lg p-4 sm:p-6 border shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <feature.icon className="h-6 w-6 text-primary" />
@@ -154,11 +154,11 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-card rounded-lg p-6 border"
+                className="bg-card rounded-lg p-4 sm:p-6 border"
               >
                 <p className="text-lg mb-4">&ldquo;{testimonial.quote}&rdquo;</p>
                 <div>
@@ -211,7 +211,7 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="bg-primary rounded-2xl p-12 text-center text-primary-foreground">
+          <div className="bg-primary rounded-2xl p-6 sm:p-12 text-center text-primary-foreground">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Streamline Your Business?
             </h2>
