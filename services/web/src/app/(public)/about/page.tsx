@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold tracking-tight mb-8">About FocusFlow</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-8">About FocusFlow</h1>
 
         <div className="prose prose-lg max-w-none">
           <p className="text-xl text-muted-foreground mb-6">

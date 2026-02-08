@@ -1,11 +1,17 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Menu, X } from 'lucide-react'
 
 interface PublicLayoutProps {
   readonly children: React.ReactNode
 }
 
 export function PublicLayout({ children }: PublicLayoutProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -44,14 +50,51 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             </nav>
 
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup">Sign Up</Link>
-              </Button>
+              <div className="hidden sm:flex items-center space-x-4">
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </div>
+              <button
+                className="md:hidden p-2 rounded-md hover:bg-muted"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t py-4 space-y-2">
+              {[
+                { href: '/about', label: 'About' },
+                { href: '/features', label: 'Features' },
+                { href: '/pricing', label: 'Pricing' },
+                { href: '/contact', label: 'Contact' },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="flex gap-2 pt-2 border-t mt-2">
+                <Button variant="ghost" className="flex-1" asChild>
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                </Button>
+                <Button className="flex-1" asChild>
+                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

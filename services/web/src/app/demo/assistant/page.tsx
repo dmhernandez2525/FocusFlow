@@ -44,14 +44,14 @@ export default function DemoAssistantPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Assistant Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Assistant Dashboard</h1>
         <p className="text-muted-foreground">
           Manage bookings, client communications, and scheduling tasks.
         </p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Inquiries</CardTitle>
@@ -196,7 +196,7 @@ export default function DemoAssistantPage() {
           <CardDescription>Quick access to client contact information</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {clients.slice(0, 6).map(client => (
               <div key={client.id} className="flex items-center gap-3 p-3 border rounded-lg">
                 <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">

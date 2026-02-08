@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { DemoProvider, useDemo } from '@/contexts/demo-context'
 import type { DemoRole } from '@/lib/demo-data'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 // Role-specific navigation configurations
 const photographerNavigation = [
@@ -256,42 +257,20 @@ function DemoLayoutContent({ children }: DemoLayoutProps) {
           </div>
         </header>
 
-        {/* Mobile role indicator */}
-        <div className="md:hidden px-4 py-2 border-b bg-muted/50">
-          <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(currentRole)}`}>
-            <RoleIcon className="h-3 w-3" />
-            <span className="capitalize">{currentRole}</span>
-          </div>
-        </div>
-
-        {/* Mobile navigation */}
-        <nav className="md:hidden border-b bg-card overflow-x-auto">
-          <div className="flex px-2 py-2 gap-1">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  )}
-                >
-                  <item.icon className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                  {item.name}
-                </Link>
-              )
-            })}
-          </div>
-        </nav>
-
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {children}
         </main>
+
+        {/* Bottom Navigation */}
+        <BottomNav
+          navigation={navigation}
+          currentRole={currentRole}
+          onSwitchRole={handleSwitchRole}
+          exitHref="/"
+          exitLabel="Exit Demo"
+          isDemo
+        />
       </div>
     </div>
   )

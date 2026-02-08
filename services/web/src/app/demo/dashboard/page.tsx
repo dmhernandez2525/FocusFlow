@@ -38,14 +38,14 @@ export default function DemoDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome back! Here&apos;s what&apos;s happening with your photography business.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -104,7 +104,7 @@ export default function DemoDashboardPage() {
       </div>
 
       {/* Revenue Chart and Upcoming Sessions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
         {/* Revenue Overview */}
         <Card className="lg:col-span-4">
           <CardHeader>
@@ -254,7 +254,7 @@ export default function DemoDashboardPage() {
           <CardDescription>Outstanding payments and invoices</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <div className="p-4 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground">Pending Invoices</p>
               <p className="text-2xl font-bold">{metrics.pendingInvoices}</p>
