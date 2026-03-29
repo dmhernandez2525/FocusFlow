@@ -1,9 +1,22 @@
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 export default auth((req) => {
   const { pathname } = req.nextUrl
   const isAuthenticated = !!req.auth
+
+  // In demo mode, allow access to all dashboard routes without auth
+  if (DEMO_MODE) {
+    if (
+      (pathname.startsWith('/login') || pathname.startsWith('/signup')) &&
+      isAuthenticated
+    ) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+    return NextResponse.next()
+  }
 
   // Redirect root to dashboard if authenticated
   if (pathname === '/' && isAuthenticated) {
@@ -16,6 +29,7 @@ export default auth((req) => {
     pathname.startsWith('/tasks') ||
     pathname.startsWith('/focus') ||
     pathname.startsWith('/analytics') ||
+    pathname.startsWith('/blocker') ||
     pathname.startsWith('/settings')
   ) {
     if (!isAuthenticated) {
@@ -38,14 +52,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$).*)',
   ],
 }

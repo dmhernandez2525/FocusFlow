@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -13,91 +14,38 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Camera, Users, Eye, Building2 } from 'lucide-react'
+import { Timer } from 'lucide-react'
 
-// Check if demo mode is enabled via environment variable
 const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
-// Demo role selector component
-function DemoRoleSelector() {
+function DemoLoginCard() {
   const router = useRouter()
 
-  const handleDemoLogin = (role: 'photographer' | 'assistant' | 'admin') => {
-    // Store the demo role and demo mode flag
-    localStorage.setItem('focusflow-demo-role', role)
+  const handleDemoLogin = () => {
     localStorage.setItem('focusflow-demo-mode', 'true')
-    // Navigate to the main dashboard (not demo-specific routes)
     router.push('/dashboard')
   }
 
   return (
-    <Card className="mx-auto max-w-md">
+    <Card className="mx-auto max-w-sm">
       <CardHeader className="text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mx-auto mb-4">
-          <Eye className="h-4 w-4 text-primary" />
+          <Timer className="h-4 w-4 text-primary" />
           <span className="text-xs text-primary font-medium">Demo Mode</span>
         </div>
         <CardTitle className="text-2xl">Get Started with FocusFlow</CardTitle>
         <CardDescription>
-          Choose a role to explore the photography management platform
+          Explore the productivity platform with sample data
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <button
-          onClick={() => handleDemoLogin('photographer')}
-          className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all group text-left"
-        >
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Camera className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <div className="font-medium group-hover:text-primary transition-colors">
-              Try as Photographer
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Full access to galleries, clients, sessions, and analytics
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleDemoLogin('assistant')}
-          className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-blue-500 hover:bg-blue-500/5 transition-all group text-left"
-        >
-          <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-            <Users className="h-6 w-6 text-blue-500" />
-          </div>
-          <div>
-            <div className="font-medium group-hover:text-blue-500 transition-colors">
-              Try as Assistant
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Manage bookings, client communications, and scheduling
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleDemoLogin('admin')}
-          className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-amber-500 hover:bg-amber-500/5 transition-all group text-left"
-        >
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-amber-500" />
-          </div>
-          <div>
-            <div className="font-medium group-hover:text-amber-500 transition-colors">
-              Try as Studio Admin
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Manage team, view reports, and configure studio settings
-            </div>
-          </div>
-        </button>
+      <CardContent>
+        <Button onClick={handleDemoLogin} className="w-full" size="lg">
+          Enter Demo
+        </Button>
       </CardContent>
       <CardFooter>
         <p className="text-center text-xs text-muted-foreground w-full">
-          This is a demo environment with sample data.
-          <br />No account creation required.
+          No account required. Sample data only.
         </p>
       </CardFooter>
     </Card>
@@ -105,12 +53,48 @@ function DemoRoleSelector() {
 }
 
 export default function SignUpPage() {
-  // In demo mode, show role selection instead of real auth
+  const router = useRouter()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   if (DEMO_MODE_ENABLED) {
-    return <DemoRoleSelector />
+    return <DemoLoginCard />
   }
 
-  // Normal mode - show standard signup form
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError(null)
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to create account')
+      }
+
+      router.push('/login')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
@@ -120,16 +104,22 @@ export default function SignUpPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="first-name">First name</Label>
-              <Input id="first-name" placeholder="Max" required />
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400 rounded-md">
+              {error}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="last-name">Last name</Label>
-              <Input id="last-name" placeholder="Robinson" required />
-            </div>
+          )}
+          <div className="grid gap-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -137,23 +127,31 @@ export default function SignUpPage() {
               id="email"
               type="email"
               placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              disabled={isLoading}
+            />
           </div>
-          <Button type="submit" className="w-full">
-            Create an account
-          </Button>
-          <Button variant="outline" className="w-full">
-            Sign up with Google
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Creating account...' : 'Create an account'}
           </Button>
         </form>
       </CardContent>
       <CardFooter>
-        <div className="text-center text-sm">
+        <div className="text-center text-sm w-full">
           Already have an account?{' '}
           <Link href="/login" className="underline">
             Sign in

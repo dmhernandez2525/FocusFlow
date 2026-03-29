@@ -95,7 +95,7 @@ ENV HOST=0.0.0.0
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "process.exit(0);"
+    CMD ["sh", "-c", "ps aux | grep 'node dist/index.js' | grep -v grep || exit 1"]
 
 # Switch to non-root user
 USER worker-service

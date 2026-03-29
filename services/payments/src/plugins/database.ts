@@ -8,7 +8,7 @@ export default fp(async function (fastify: FastifyInstance) {
     max: fastify.config.DATABASE_MAX_CONNECTIONS,
     idleTimeoutMillis: fastify.config.DATABASE_IDLE_TIMEOUT,
     connectionTimeoutMillis: fastify.config.DATABASE_CONNECTION_TIMEOUT,
-    ssl: fastify.config.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: fastify.config.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false
   });
 
   // Test database connection

@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,9 +26,15 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Run linter
-        run: pnpm lint || true
+        run: pnpm lint
 
       - name: Type check packages
         run: |
-          cd packages/types && pnpm tsc --noEmit || true
-          cd ../utils && pnpm tsc --noEmit || true
+          cd packages/types && pnpm tsc --noEmit
+          cd ../../packages/utils && pnpm tsc --noEmit
+
+      - name: Run tests
+        run: cd services/web && pnpm test -- --forceExit --coverage
+
+      - name: Build
+        run: cd services/web && pnpm build

@@ -198,6 +198,12 @@ export default async function paymentIntentsRoutes(fastify: FastifyInstance): Pr
       const { page = 1, limit = 20, sort = 'created_at', order = 'desc' } = request.query;
       const offset = (page - 1) * limit;
 
+      // Whitelist sort columns and order direction to prevent SQL injection
+      const allowedSortColumns = ['created_at', 'updated_at', 'amount', 'status', 'currency'];
+      const allowedOrderDirections = ['asc', 'desc'];
+      const safeSort = allowedSortColumns.includes(sort) ? sort : 'created_at';
+      const safeOrder = allowedOrderDirections.includes(order.toLowerCase()) ? order : 'desc';
+
       let whereClause = '1=1';
       const queryParams: any[] = [];
       let paramIndex = 1;
@@ -256,7 +262,7 @@ export default async function paymentIntentsRoutes(fastify: FastifyInstance): Pr
       const result = await fastify.pg.query(
         `SELECT * FROM payment_intents
          WHERE ${whereClause}
-         ORDER BY ${sort} ${order}
+         ORDER BY ${safeSort} ${safeOrder}
          LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
         [...queryParams, limit, offset]
       );

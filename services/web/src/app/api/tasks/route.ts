@@ -61,7 +61,8 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({ tasks })
-  } catch {
+  } catch (error) {
+    console.error('[API] GET /api/tasks error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -80,7 +81,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
     const validatedData = createTaskSchema.parse(body)
 
     const task = await prisma.task.create({
@@ -104,7 +113,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(
-      { message: 'Task created successfully', task },
+      { task },
       { status: 201 }
     )
   } catch (error) {
@@ -115,6 +124,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.error('[API] POST /api/tasks error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

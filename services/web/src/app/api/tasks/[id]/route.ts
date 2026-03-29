@@ -57,7 +57,8 @@ export async function GET(
     }
 
     return NextResponse.json({ task })
-  } catch {
+  } catch (error) {
+    console.error('[API] GET /api/tasks/[id] error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -80,7 +81,15 @@ export async function PATCH(
     }
 
     const { id } = await context.params
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
     const validatedData = updateTaskSchema.parse(body)
 
     const existingTask = await prisma.task.findFirst({
@@ -118,9 +127,7 @@ export async function PATCH(
       },
     })
 
-    return NextResponse.json(
-      { message: 'Task updated successfully', task }
-    )
+    return NextResponse.json({ task })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -129,6 +136,7 @@ export async function PATCH(
       )
     }
 
+    console.error('[API] PATCH /api/tasks/[id] error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -170,10 +178,9 @@ export async function DELETE(
       where: { id },
     })
 
-    return NextResponse.json(
-      { message: 'Task deleted successfully' }
-    )
-  } catch {
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[API] DELETE /api/tasks/[id] error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

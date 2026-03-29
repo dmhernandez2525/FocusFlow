@@ -84,6 +84,9 @@ pids
 # Yarn Integrity file
 .yarn-integrity
 
+# Jarvis Resume
+.jarvis-resume
+
 # Vercel
 .vercel
 

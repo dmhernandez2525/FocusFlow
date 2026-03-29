@@ -19,34 +19,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null
+          }
+
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email as string,
+            },
+          })
+
+          if (!user || !user.password) {
+            return null
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          )
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          }
+        } catch (error) {
+          console.error('[Auth] Credential authorization error:', error)
           return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email as string,
-          },
-        })
-
-        if (!user || !user.password) {
-          return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
         }
       },
     }),
@@ -69,24 +74,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
     async jwt({ token, user }) {
-      const dbUser = await prisma.user.findFirst({
-        where: {
-          email: token.email!,
-        },
-      })
+      try {
+        const dbUser = await prisma.user.findFirst({
+          where: {
+            email: token.email!,
+          },
+        })
 
-      if (!dbUser) {
+        if (!dbUser) {
+          if (user) {
+            token.id = user?.id
+          }
+          return token
+        }
+
+        return {
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          picture: dbUser.image,
+        }
+      } catch (error) {
+        console.error('[Auth] JWT callback error:', error)
         if (user) {
           token.id = user?.id
         }
         return token
-      }
-
-      return {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        picture: dbUser.image,
       }
     },
   },

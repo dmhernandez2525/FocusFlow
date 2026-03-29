@@ -16,76 +16,26 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   LayoutDashboard,
-  Images,
-  Users,
-  Calendar,
-  CreditCard,
+  Timer,
+  CheckSquare,
+  Shield,
   Settings,
   LogOut,
   User,
   BarChart3,
-  MessageSquare,
-  Camera,
-  Building2,
 } from 'lucide-react'
 import { DemoBanner } from '@/components/demo-banner'
 import { DemoProvider } from '@/contexts/demo-context'
-import type { DemoRole } from '@/lib/demo-data'
-import { getDemoUserByRole } from '@/lib/demo-data'
 import { BottomNav } from '@/components/layout/BottomNav'
 
-// Role-specific navigation configurations
-const photographerNavigation = [
+const mainNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Galleries', href: '/galleries', icon: Images },
-  { name: 'Clients', href: '/clients', icon: Users },
-  { name: 'Sessions', href: '/sessions', icon: Calendar },
-  { name: 'Payments', href: '/payments', icon: CreditCard },
+  { name: 'Focus', href: '/focus', icon: Timer },
+  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Blocker', href: '/blocker', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
-
-const assistantNavigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Sessions', href: '/sessions', icon: Calendar },
-  { name: 'Clients', href: '/clients', icon: Users },
-  { name: 'Messages', href: '/messages', icon: MessageSquare },
-]
-
-const adminNavigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Team', href: '/team', icon: Users },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Galleries', href: '/galleries', icon: Images },
-  { name: 'Sessions', href: '/sessions', icon: Calendar },
-  { name: 'Settings', href: '/settings', icon: Settings },
-]
-
-const getNavigationForRole = (role: DemoRole) => {
-  const navigationMap = {
-    photographer: photographerNavigation,
-    assistant: assistantNavigation,
-    admin: adminNavigation,
-  }
-  return navigationMap[role] || photographerNavigation
-}
-
-const getRoleIcon = (role: DemoRole) => {
-  const iconMap = {
-    photographer: Camera,
-    assistant: Users,
-    admin: Building2,
-  }
-  return iconMap[role] || Camera
-}
-
-const getRoleBadgeColor = (role: DemoRole) => {
-  const colorMap = {
-    photographer: 'bg-primary/10 text-primary',
-    assistant: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    admin: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  }
-  return colorMap[role] || colorMap.photographer
-}
 
 interface DashboardLayoutProps {
   readonly children: React.ReactNode
@@ -95,26 +45,15 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isDemo, setIsDemo] = useState(false)
-  const [currentRole, setCurrentRole] = useState<DemoRole>('photographer')
 
   useEffect(() => {
     const demoMode = localStorage.getItem('focusflow-demo-mode')
-    const storedRole = localStorage.getItem('focusflow-demo-role') as DemoRole | null
-
     if (demoMode === 'true') {
       setIsDemo(true)
-      if (storedRole && ['photographer', 'assistant', 'admin'].includes(storedRole)) {
-        setCurrentRole(storedRole)
-      }
     }
   }, [])
 
-  const navigation = isDemo
-    ? getNavigationForRole(currentRole)
-    : photographerNavigation
-
-  const user = isDemo ? getDemoUserByRole(currentRole) : null
-  const RoleIcon = getRoleIcon(currentRole)
+  const navigation = mainNavigation
 
   const handleLogout = () => {
     if (isDemo) {
@@ -122,12 +61,6 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
       localStorage.removeItem('focusflow-demo-role')
     }
     router.push('/')
-  }
-
-  const handleSwitchRole = (role: DemoRole) => {
-    localStorage.setItem('focusflow-demo-role', role)
-    setCurrentRole(role)
-    router.refresh()
   }
 
   return (
@@ -149,16 +82,6 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
                 </span>
               )}
             </div>
-
-            {/* Role Badge for Demo Mode */}
-            {isDemo && (
-              <div className="mx-4 mt-4">
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getRoleBadgeColor(currentRole)}`}>
-                  <RoleIcon className="h-4 w-4" />
-                  <span className="text-sm font-medium capitalize">{currentRole}</span>
-                </div>
-              </div>
-            )}
 
             <div className="mt-6 flex-grow flex flex-col">
               <nav className="flex-1 px-2 space-y-1">
@@ -186,25 +109,6 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
               </nav>
             </div>
 
-            {/* Role Switcher for Demo Mode */}
-            {isDemo && (
-              <div className="px-4 py-3 border-t">
-                <p className="text-xs text-muted-foreground mb-2">Switch Role</p>
-                <div className="flex gap-1">
-                  {(['photographer', 'assistant', 'admin'] as const).map((role) => (
-                    <Button
-                      key={role}
-                      variant={currentRole === role ? 'default' : 'outline'}
-                      size="sm"
-                      className="flex-1 text-xs px-2"
-                      onClick={() => handleSwitchRole(role)}
-                    >
-                      {role.charAt(0).toUpperCase()}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -228,12 +132,10 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={user?.avatarUrl || '/avatars/user.png'}
-                          alt={user?.name || 'User'}
+                          src="/avatars/user.png"
+                          alt="User"
                         />
-                        <AvatarFallback>
-                          {user?.name?.charAt(0) || 'U'}
-                        </AvatarFallback>
+                        <AvatarFallback>U</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
@@ -241,10 +143,10 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
-                          {user?.name || 'User Name'}
+                          {isDemo ? 'Demo User' : 'User'}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {user?.email || 'user@example.com'}
+                          {isDemo ? 'demo@focusflow.app' : 'user@example.com'}
                         </p>
                       </div>
                     </DropdownMenuLabel>
@@ -278,8 +180,6 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
           {/* Bottom Navigation */}
           <BottomNav
             navigation={navigation}
-            currentRole={isDemo ? currentRole : undefined}
-            onSwitchRole={isDemo ? handleSwitchRole : undefined}
             onExit={handleLogout}
             exitLabel={isDemo ? 'Exit Demo' : 'Log out'}
             isDemo={isDemo}

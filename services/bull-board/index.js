@@ -10,8 +10,13 @@ const PORT = process.env.PORT || 3003;
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD || undefined;
-const BASIC_AUTH_USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
-const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
+const BASIC_AUTH_USERNAME = process.env.BASIC_AUTH_USERNAME;
+const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD;
+
+if (!BASIC_AUTH_USERNAME || !BASIC_AUTH_PASSWORD) {
+  console.error('BASIC_AUTH_USERNAME and BASIC_AUTH_PASSWORD must be set');
+  process.exit(1);
+}
 
 // Queue names matching the queue service
 const QUEUE_NAMES = [

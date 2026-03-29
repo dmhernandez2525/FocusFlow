@@ -48,13 +48,17 @@ flags:
     paths:
       - services/web/
     carryforward: true
-  api:
+  cms:
     paths:
-      - services/api/
+      - services/cms/
     carryforward: true
   payments:
     paths:
       - services/payments/
+    carryforward: true
+  queue:
+    paths:
+      - services/queue/
     carryforward: true
   packages:
     paths:

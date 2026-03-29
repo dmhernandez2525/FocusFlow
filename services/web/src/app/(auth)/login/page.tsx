@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -13,91 +14,38 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Camera, Users, Eye, Building2 } from 'lucide-react'
+import { Timer } from 'lucide-react'
 
-// Check if demo mode is enabled via environment variable
 const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
-// Demo role selector component
-function DemoRoleSelector() {
+function DemoLoginCard() {
   const router = useRouter()
 
-  const handleDemoLogin = (role: 'photographer' | 'assistant' | 'admin') => {
-    // Store the demo role and demo mode flag
-    localStorage.setItem('focusflow-demo-role', role)
+  const handleDemoLogin = () => {
     localStorage.setItem('focusflow-demo-mode', 'true')
-    // Navigate to the main dashboard (not demo-specific routes)
     router.push('/dashboard')
   }
 
   return (
-    <Card className="mx-auto max-w-md">
+    <Card className="mx-auto max-w-sm">
       <CardHeader className="text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mx-auto mb-4">
-          <Eye className="h-4 w-4 text-primary" />
+          <Timer className="h-4 w-4 text-primary" />
           <span className="text-xs text-primary font-medium">Demo Mode</span>
         </div>
         <CardTitle className="text-2xl">Welcome to FocusFlow</CardTitle>
         <CardDescription>
-          Choose how you&apos;d like to explore the photography management platform
+          Explore the productivity platform with sample data
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <button
-          onClick={() => handleDemoLogin('photographer')}
-          className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all group text-left"
-        >
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Camera className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <div className="font-medium group-hover:text-primary transition-colors">
-              Sign in as Photographer
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Full access to galleries, clients, sessions, and analytics
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleDemoLogin('assistant')}
-          className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-blue-500 hover:bg-blue-500/5 transition-all group text-left"
-        >
-          <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-            <Users className="h-6 w-6 text-blue-500" />
-          </div>
-          <div>
-            <div className="font-medium group-hover:text-blue-500 transition-colors">
-              Sign in as Assistant
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Manage bookings, client communications, and scheduling
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleDemoLogin('admin')}
-          className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-amber-500 hover:bg-amber-500/5 transition-all group text-left"
-        >
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-amber-500" />
-          </div>
-          <div>
-            <div className="font-medium group-hover:text-amber-500 transition-colors">
-              Sign in as Studio Admin
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Manage team, view reports, and configure studio settings
-            </div>
-          </div>
-        </button>
+      <CardContent>
+        <Button onClick={handleDemoLogin} className="w-full" size="lg">
+          Enter Demo
+        </Button>
       </CardContent>
       <CardFooter>
         <p className="text-center text-xs text-muted-foreground w-full">
-          This is a demo environment with sample data.
-          <br />No real data will be modified.
+          No account required. Sample data only.
         </p>
       </CardFooter>
     </Card>
@@ -105,12 +53,42 @@ function DemoRoleSelector() {
 }
 
 export default function LoginPage() {
-  // In demo mode, show role selection instead of real auth
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   if (DEMO_MODE_ENABLED) {
-    return <DemoRoleSelector />
+    return <DemoLoginCard />
   }
 
-  // Normal mode - show standard login form
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      const { signIn } = await import('next-auth/react')
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError('Invalid email or password')
+      } else {
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
@@ -120,35 +98,44 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="grid gap-4">
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400 rounded-md">
+              {error}
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
-              <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
-                Forgot your password?
-              </Link>
             </div>
-            <Input id="password" type="password" required />
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
-          <Button type="submit" className="w-full">
-            Login
-          </Button>
-          <Button variant="outline" className="w-full">
-            Login with Google
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Signing in...' : 'Login'}
           </Button>
         </form>
       </CardContent>
       <CardFooter>
-        <div className="text-center text-sm">
+        <div className="text-center text-sm w-full">
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="underline">
             Sign up

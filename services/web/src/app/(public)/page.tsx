@@ -2,79 +2,79 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
-  Camera,
-  Users,
-  Calendar,
-  CreditCard,
-  Image,
+  Timer,
+  CheckSquare,
+  Shield,
   BarChart3,
+  Target,
+  Brain,
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'FocusFlow - Photography Business Management Platform',
+  title: 'FocusFlow - Stay Focused, Get More Done',
   description:
-    'Streamline your photography business with client management, gallery delivery, booking, and invoicing all in one place.',
+    'A productivity app with focus timer, task management, and distraction blocking to help you stay in the zone.',
 }
 
 const features = [
   {
-    icon: Image,
-    title: 'Gallery Delivery',
+    icon: Timer,
+    title: 'Focus Timer',
     description:
-      'Share stunning photo galleries with clients. Password protection, download controls, and expiration settings.',
+      'Pomodoro-style timer with customizable work and break intervals. Stay on track with visual progress.',
   },
   {
-    icon: Users,
-    title: 'Client Management',
+    icon: CheckSquare,
+    title: 'Task Management',
     description:
-      'Track client relationships, lifecycle stages, and communication history in one central CRM.',
+      'Create, organize, and prioritize tasks. Filter by status, priority, and project.',
   },
   {
-    icon: Calendar,
-    title: 'Session Booking',
+    icon: Shield,
+    title: 'Distraction Blocking',
     description:
-      'Online booking with automated reminders, contract signing, and deposit collection.',
-  },
-  {
-    icon: CreditCard,
-    title: 'Invoicing & Payments',
-    description:
-      'Create professional invoices, accept online payments, and track your revenue.',
-  },
-  {
-    icon: Camera,
-    title: 'Session Workflow',
-    description:
-      'Manage your entire session workflow from inquiry to final delivery seamlessly.',
+      'Block distracting websites during focus sessions. Customize your blocklist by category.',
   },
   {
     icon: BarChart3,
-    title: 'Business Analytics',
+    title: 'Productivity Analytics',
     description:
-      'Understand your business with revenue reports, booking trends, and client insights.',
+      'Track your focus time, task completion rates, and productivity trends over time.',
+  },
+  {
+    icon: Target,
+    title: 'Goal Tracking',
+    description:
+      'Set daily and weekly focus goals. Track your streaks and build consistent habits.',
+  },
+  {
+    icon: Brain,
+    title: 'Smart Breaks',
+    description:
+      'Automatic break reminders with the right balance of work and rest for peak performance.',
   },
 ]
 
 const testimonials = [
   {
     quote:
-      'FocusFlow transformed how I run my photography business. Client management is a breeze now.',
-    author: 'Sarah M.',
-    role: 'Wedding Photographer',
+      'FocusFlow helped me double my daily output. The Pomodoro timer keeps me honest.',
+    author: 'Alex R.',
+    role: 'Software Engineer',
   },
   {
     quote:
-      'The gallery delivery feature alone is worth it. My clients love the experience.',
-    author: 'James K.',
-    role: 'Portrait Photographer',
+      'The distraction blocker is a game-changer. No more falling into social media rabbit holes.',
+    author: 'Priya S.',
+    role: 'Content Creator',
   },
   {
     quote:
-      'Finally, one platform that handles everything. No more juggling multiple tools.',
-    author: 'Emily R.',
-    role: 'Studio Owner',
+      'Simple, effective, and exactly what I needed to stay focused during study sessions.',
+    author: 'Jordan T.',
+    role: 'Graduate Student',
   },
 ]
 
@@ -87,13 +87,12 @@ export default function HomePage() {
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-              Run Your Photography Business{' '}
-              <span className="text-primary">Effortlessly</span>
+              Stay Focused,{' '}
+              <span className="text-primary">Get More Done</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              The all-in-one platform for photographers. Manage clients, deliver
-              galleries, book sessions, and get paid - all in one beautiful
-              workspace.
+              A productivity toolkit that combines a focus timer, task management,
+              and distraction blocking to help you achieve deep work.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
@@ -106,9 +105,6 @@ export default function HomePage() {
                 <Link href="/login">Sign In</Link>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              No credit card required. Start your 14-day free trial today.
-            </p>
           </div>
         </div>
       </section>
@@ -118,10 +114,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything You Need to Succeed
+              Everything You Need to Focus
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Powerful tools designed specifically for professional photographers
+              Simple tools that work together to maximize your productivity
             </p>
           </div>
 
@@ -142,15 +138,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Testimonials Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Loved by Photographers
+              Loved by Productive People
             </h2>
             <p className="text-xl text-muted-foreground">
-              Join thousands of photographers who trust FocusFlow
+              Join thousands who have improved their focus with FocusFlow
             </p>
           </div>
 
@@ -179,20 +175,19 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Focus on Photography, Not Admin Work
+                Work Smarter, Not Harder
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Stop spending hours on administrative tasks. FocusFlow automates
-                the tedious work so you can focus on what you love - creating
-                beautiful images.
+                Stop letting distractions eat your time. FocusFlow gives you the structure
+                to do your best work every day.
               </p>
               <ul className="space-y-4">
                 {[
-                  'Automated booking confirmations and reminders',
-                  'One-click gallery publishing',
-                  'Integrated contracts and invoicing',
-                  'Client portal for self-service',
-                  'Mobile-friendly for on-the-go management',
+                  'Pomodoro timer with customizable intervals',
+                  'Automatic distraction blocking during focus',
+                  'Task prioritization and progress tracking',
+                  'Daily and weekly productivity analytics',
+                  'Works on desktop and mobile',
                 ].map((benefit) => (
                   <li key={benefit} className="flex items-start gap-3">
                     <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
@@ -202,7 +197,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-8 aspect-square flex items-center justify-center">
-              <Camera className="h-32 w-32 text-primary/40" />
+              <Timer className="h-32 w-32 text-primary/40" />
             </div>
           </div>
         </div>
@@ -213,20 +208,16 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="bg-primary rounded-2xl p-6 sm:p-12 text-center text-primary-foreground">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Streamline Your Business?
+              Ready to Get Focused?
             </h2>
             <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-              Join photographers who have simplified their workflow and grown
-              their business with FocusFlow.
+              Join people who have taken control of their time and boosted
+              their productivity with FocusFlow.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                variant="secondary"
-                asChild
-              >
+              <Button size="lg" variant="secondary" asChild>
                 <Link href="/signup">
-                  Start Free Trial
+                  Start Free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
