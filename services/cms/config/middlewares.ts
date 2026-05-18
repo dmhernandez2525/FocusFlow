@@ -59,8 +59,7 @@ interface MiddlewareConfig {
 export default ({ env }: { env: (key: string, defaultValue?: string | number | boolean | string[]) => string | number | boolean | string[] }): MiddlewareConfig[] => {
   const isProduction = env('NODE_ENV', 'development') === 'production';
   const allowedOrigins = env('CORS_ALLOWED_ORIGINS', ['http://localhost:3000', 'http://localhost:1337']) as string[];
-
-  return [
+  const middlewares: MiddlewareConfig[] = [
     'strapi::logger',
     'strapi::errors',
     {
@@ -141,7 +140,10 @@ export default ({ env }: { env: (key: string, defaultValue?: string | number | b
     'strapi::session',
     'strapi::favicon',
     'strapi::public',
-    {
+  ];
+
+  if (env('ENABLE_GLOBAL_RATE_LIMIT', false) === true || env('ENABLE_GLOBAL_RATE_LIMIT', false) === 'true') {
+    middlewares.push({
       name: 'global::rate-limit',
       config: {
         windowMs: env('GLOBAL_RATE_LIMIT_WINDOW', 15 * 60 * 1000) as number, // 15 minutes
@@ -154,6 +156,8 @@ export default ({ env }: { env: (key: string, defaultValue?: string | number | b
           return request.user?.id ? `user:${request.user.id}` : `ip:${request.ip}`;
         },
       } as RateLimitConfig,
-    },
-  ];
+    });
+  }
+
+  return middlewares;
 };
