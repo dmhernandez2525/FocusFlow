@@ -16,6 +16,7 @@ RUN npm install -g pnpm@9
 FROM base AS builder
 COPY . .
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @focusflow/worker rebuild sharp --config.ignore-scripts=false
 RUN cd packages/types && pnpm run build || true
 RUN cd packages/utils && pnpm run build || true
 ENV NODE_ENV=production

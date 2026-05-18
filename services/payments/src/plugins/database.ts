@@ -2,13 +2,15 @@ import fp from 'fastify-plugin';
 import postgres from '@fastify/postgres';
 import { FastifyInstance } from 'fastify';
 
+const rejectUnauthorized = process.env['DATABASE_SSL_REJECT_UNAUTHORIZED'] === 'true';
+
 export default fp(async function (fastify: FastifyInstance) {
   await fastify.register(postgres, {
     connectionString: fastify.config.DATABASE_URL,
     max: fastify.config.DATABASE_MAX_CONNECTIONS,
     idleTimeoutMillis: fastify.config.DATABASE_IDLE_TIMEOUT,
     connectionTimeoutMillis: fastify.config.DATABASE_CONNECTION_TIMEOUT,
-    ssl: fastify.config.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false
+    ssl: fastify.config.NODE_ENV === 'production' ? { rejectUnauthorized } : false
   });
 
   // Test database connection
@@ -16,7 +18,7 @@ export default fp(async function (fastify: FastifyInstance) {
     await fastify.pg.query('SELECT NOW()');
     fastify.log.info('Database connection established successfully');
   } catch (error) {
-    fastify.log.error('Failed to connect to database:', error);
+    fastify.log.error({ err: error }, 'Failed to connect to database');
     throw error;
   }
 
