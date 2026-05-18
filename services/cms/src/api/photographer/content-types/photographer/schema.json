@@ -186,24 +186,6 @@
       "relation": "oneToMany",
       "target": "api::photo.photo",
       "mappedBy": "photographer"
-    },
-    "payments": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::payment.payment",
-      "mappedBy": "photographer"
-    },
-    "contracts": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::contract.contract",
-      "mappedBy": "photographer"
-    },
-    "workflows": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::workflow.workflow",
-      "mappedBy": "photographer"
     }
   }
 }

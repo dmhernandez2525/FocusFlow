@@ -271,18 +271,6 @@
       "relation": "oneToMany",
       "target": "api::photo.photo",
       "mappedBy": "session"
-    },
-    "payments": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::payment.payment",
-      "mappedBy": "session"
-    },
-    "contract": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::contract.contract",
-      "inversedBy": "session"
     }
   }
 }

@@ -181,18 +181,6 @@
       "relation": "oneToMany",
       "target": "api::session.session",
       "mappedBy": "client"
-    },
-    "payments": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::payment.payment",
-      "mappedBy": "client"
-    },
-    "contracts": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::contract.contract",
-      "mappedBy": "client"
     }
   }
 }
