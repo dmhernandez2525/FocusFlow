@@ -26,10 +26,10 @@ export const EnvironmentSchema = Type.Object({
   // Stripe
   STRIPE_SECRET_KEY: Type.String(),
   STRIPE_WEBHOOK_SECRET: Type.String(),
-  STRIPE_PUBLISHABLE_KEY: Type.String(),
+  STRIPE_PUBLISHABLE_KEY: Type.String({ default: '' }),
 
   // Security
-  CORS_ORIGIN: Type.Array(Type.String(), { default: [] }),
+  CORS_ORIGIN: Type.Union([Type.Array(Type.String()), Type.String()], { default: [] }),
   RATE_LIMIT_MAX: Type.Number({ default: 100, minimum: 1 }),
   RATE_LIMIT_TIME_WINDOW: Type.Number({ default: 60000, minimum: 1000 }),
 

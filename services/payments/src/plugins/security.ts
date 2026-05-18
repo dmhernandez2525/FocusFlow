@@ -36,7 +36,10 @@ export default fp(async function (fastify: FastifyInstance) {
   // CORS configuration
   await fastify.register(cors, {
     origin: (origin, callback) => {
-      const allowedOrigins = fastify.config.CORS_ORIGIN;
+      const configuredOrigins = fastify.config.CORS_ORIGIN;
+      const allowedOrigins = Array.isArray(configuredOrigins)
+        ? configuredOrigins
+        : configuredOrigins.split(',').map((origin) => origin.trim()).filter(Boolean);
 
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);

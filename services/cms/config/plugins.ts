@@ -1,6 +1,6 @@
 interface S3ProviderOptions {
   s3Options: {
-    credentials: {
+    credentials?: {
       accessKeyId: string;
       secretAccessKey: string;
     };
@@ -20,7 +20,7 @@ interface S3ProviderOptions {
 interface UploadConfig {
   config: {
     provider: string;
-    providerOptions: S3ProviderOptions;
+    providerOptions: S3ProviderOptions | Record<string, never>;
     actionOptions: {
       upload: {
         ACL?: string;
@@ -82,61 +82,63 @@ export default ({ env }: { env: (key: string, defaultValue?: string | number | b
   const s3Bucket = env('S3_BUCKET', '') as string;
   const sendgridApiKey = env('SENDGRID_API_KEY', '') as string;
 
-  if (!awsAccessKeyId) {
-    throw new Error('AWS_ACCESS_KEY_ID environment variable is required');
-  }
-
-  if (!awsSecretAccessKey) {
-    throw new Error('AWS_SECRET_ACCESS_KEY environment variable is required');
-  }
-
-  if (!s3Bucket) {
-    throw new Error('S3_BUCKET environment variable is required');
-  }
-
   const isProduction = env('NODE_ENV', 'development') === 'production';
-
-  return {
-    upload: {
-      config: {
-        provider: 'aws-s3',
-        providerOptions: {
-          s3Options: {
-            credentials: {
-              accessKeyId: awsAccessKeyId,
-              secretAccessKey: awsSecretAccessKey,
+  const s3Credentials = awsAccessKeyId && awsSecretAccessKey
+    ? { accessKeyId: awsAccessKeyId, secretAccessKey: awsSecretAccessKey }
+    : undefined;
+  const uploadConfig: UploadConfig = s3Bucket
+    ? {
+        config: {
+          provider: 'aws-s3',
+          providerOptions: {
+            s3Options: {
+              ...(s3Credentials ? { credentials: s3Credentials } : {}),
+              region: awsRegion,
+              endpoint: env('S3_ENDPOINT', undefined) as string | undefined,
+              params: {
+                Bucket: s3Bucket,
+                ACL: env('S3_ACL', 'public-read') as string,
+              },
+              s3ForcePathStyle: env('S3_FORCE_PATH_STYLE', false) as boolean,
+              signatureVersion: 'v4',
             },
-            region: awsRegion,
-            endpoint: env('S3_ENDPOINT', undefined) as string | undefined,
-            params: {
-              Bucket: s3Bucket,
+            baseUrl: env('S3_BASE_URL', undefined) as string | undefined,
+            rootPath: env('S3_ROOT_PATH', 'uploads') as string,
+          },
+          actionOptions: {
+            upload: {
               ACL: env('S3_ACL', 'public-read') as string,
             },
-            s3ForcePathStyle: env('S3_FORCE_PATH_STYLE', false) as boolean,
-            signatureVersion: 'v4',
+            uploadStream: {
+              ACL: env('S3_ACL', 'public-read') as string,
+            },
+            delete: {},
           },
-          baseUrl: env('S3_BASE_URL', undefined) as string | undefined,
-          rootPath: env('S3_ROOT_PATH', 'uploads') as string,
-        },
-        actionOptions: {
-          upload: {
-            ACL: env('S3_ACL', 'public-read') as string,
+          sizeLimit: env('UPLOAD_SIZE_LIMIT', 10 * 1024 * 1024) as number,
+          breakpoints: {
+            xlarge: 1920,
+            large: 1000,
+            medium: 750,
+            small: 500,
+            xsmall: 64,
           },
-          uploadStream: {
-            ACL: env('S3_ACL', 'public-read') as string,
+        },
+      }
+    : {
+        config: {
+          provider: 'local',
+          providerOptions: {},
+          actionOptions: {
+            upload: {},
+            uploadStream: {},
+            delete: {},
           },
-          delete: {},
+          sizeLimit: env('UPLOAD_SIZE_LIMIT', 10 * 1024 * 1024) as number,
         },
-        sizeLimit: env('UPLOAD_SIZE_LIMIT', 10 * 1024 * 1024) as number, // 10MB default
-        breakpoints: {
-          xlarge: 1920,
-          large: 1000,
-          medium: 750,
-          small: 500,
-          xsmall: 64,
-        },
-      },
-    },
+      };
+
+  return {
+    upload: uploadConfig,
     email: {
       config: {
         provider: 'sendgrid',
