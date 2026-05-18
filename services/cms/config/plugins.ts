@@ -38,9 +38,7 @@ interface UploadConfig {
 interface EmailConfig {
   config: {
     provider: string;
-    providerOptions: {
-      apiKey: string;
-    };
+    providerOptions: Record<string, unknown>;
     settings: {
       defaultFrom: string;
       defaultReplyTo: string;
@@ -80,7 +78,6 @@ export default ({ env }: { env: (key: string, defaultValue?: string | number | b
   const awsSecretAccessKey = env('AWS_SECRET_ACCESS_KEY', '') as string;
   const awsRegion = env('AWS_REGION', 'us-east-1') as string;
   const s3Bucket = env('S3_BUCKET', '') as string;
-  const sendgridApiKey = env('SENDGRID_API_KEY', '') as string;
 
   const isProduction = env('NODE_ENV', 'development') === 'production';
   const s3Credentials = awsAccessKeyId && awsSecretAccessKey
@@ -141,10 +138,9 @@ export default ({ env }: { env: (key: string, defaultValue?: string | number | b
     upload: uploadConfig,
     email: {
       config: {
-        provider: 'sendgrid',
-        providerOptions: {
-          apiKey: sendgridApiKey,
-        },
+        // SendGrid is not installed in the CMS image. Use Strapi's bundled provider so boot is not blocked by placeholder email secrets.
+        provider: 'sendmail',
+        providerOptions: {},
         settings: {
           defaultFrom: env('FROM_EMAIL', 'noreply@focusflow.com') as string,
           defaultReplyTo: env('REPLY_TO_EMAIL', 'support@focusflow.com') as string,
