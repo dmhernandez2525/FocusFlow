@@ -25,7 +25,10 @@ interface ServerConfig {
 }
 
 export default ({ env }: { env: (key: string, defaultValue?: string | number | boolean | string[]) => string | number | boolean | string[] }): ServerConfig => {
-  const appKeys = env('APP_KEYS', []) as string[];
+  const rawAppKeys = env('APP_KEYS', '') as string | string[];
+  const appKeys = Array.isArray(rawAppKeys)
+    ? rawAppKeys
+    : rawAppKeys.split(',').map((key) => key.trim()).filter(Boolean);
 
   if (!appKeys || appKeys.length === 0) {
     throw new Error('APP_KEYS environment variable is required and must contain at least one key');
