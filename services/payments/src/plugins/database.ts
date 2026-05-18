@@ -4,9 +4,22 @@ import { FastifyInstance } from 'fastify';
 
 const rejectUnauthorized = process.env['DATABASE_SSL_REJECT_UNAUTHORIZED'] === 'true';
 
+function sanitizeDatabaseUrl(databaseUrl: string): string {
+  try {
+    const parsed = new URL(databaseUrl);
+    parsed.searchParams.delete('sslmode');
+    parsed.searchParams.delete('sslcert');
+    parsed.searchParams.delete('sslkey');
+    parsed.searchParams.delete('sslrootcert');
+    return parsed.toString();
+  } catch {
+    return databaseUrl;
+  }
+}
+
 export default fp(async function (fastify: FastifyInstance) {
   await fastify.register(postgres, {
-    connectionString: fastify.config.DATABASE_URL,
+    connectionString: sanitizeDatabaseUrl(fastify.config.DATABASE_URL),
     max: fastify.config.DATABASE_MAX_CONNECTIONS,
     idleTimeoutMillis: fastify.config.DATABASE_IDLE_TIMEOUT,
     connectionTimeoutMillis: fastify.config.DATABASE_CONNECTION_TIMEOUT,

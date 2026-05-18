@@ -39,20 +39,38 @@ interface DatabaseConfig {
   };
 }
 
+const truthy = (value: string | number | boolean): boolean =>
+  value === true || value === 'true' || value === '1';
+
+const parseDatabaseUrl = (databaseUrl: string) => {
+  const parsed = new URL(databaseUrl);
+
+  return {
+    host: parsed.hostname,
+    port: parsed.port ? Number(parsed.port) : 5432,
+    database: decodeURIComponent(parsed.pathname.replace(/^\//, '')),
+    user: decodeURIComponent(parsed.username),
+    password: decodeURIComponent(parsed.password),
+    sslMode: parsed.searchParams.get('sslmode'),
+  };
+};
+
 export default ({ env }: { env: (key: string, defaultValue?: string | number | boolean) => string | number | boolean }): DatabaseConfig => {
-  const sslConfig = env('DATABASE_SSL', false) as boolean;
+  const databaseUrl = env('DATABASE_URL', '') as string;
+  const databaseFromUrl = databaseUrl ? parseDatabaseUrl(databaseUrl) : undefined;
+  const sslConfig = truthy(env('DATABASE_SSL', false)) || Boolean(databaseFromUrl?.sslMode);
 
   return {
     connection: {
       client: 'postgres',
       connection: {
-        host: env('DATABASE_HOST', 'localhost') as string,
-        port: env('DATABASE_PORT', 5432) as number,
-        database: env('DATABASE_NAME', 'focusflow_cms') as string,
-        user: env('DATABASE_USERNAME', 'postgres') as string,
-        password: env('DATABASE_PASSWORD', '') as string,
+        host: databaseFromUrl?.host ?? env('DATABASE_HOST', 'localhost') as string,
+        port: databaseFromUrl?.port ?? env('DATABASE_PORT', 5432) as number,
+        database: databaseFromUrl?.database ?? env('DATABASE_NAME', 'focusflow_cms') as string,
+        user: databaseFromUrl?.user ?? env('DATABASE_USERNAME', 'postgres') as string,
+        password: databaseFromUrl?.password ?? env('DATABASE_PASSWORD', '') as string,
         ssl: sslConfig ? {
-          rejectUnauthorized: env('DATABASE_SSL_REJECT_UNAUTHORIZED', false) as boolean,
+          rejectUnauthorized: truthy(env('DATABASE_SSL_REJECT_UNAUTHORIZED', false)),
           ca: env('DATABASE_SSL_CA', undefined) as string | undefined,
           cert: env('DATABASE_SSL_CERT', undefined) as string | undefined,
           key: env('DATABASE_SSL_KEY', undefined) as string | undefined,
