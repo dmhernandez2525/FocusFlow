@@ -3,21 +3,21 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import closeWithGrace from 'close-with-grace';
 
 // Import plugins
-import envPlugin from '@/plugins/env';
-import databasePlugin from '@/plugins/database';
-import securityPlugin from '@/plugins/security';
-import swaggerPlugin from '@/plugins/swagger';
+import envPlugin from './plugins/env';
+import databasePlugin from './plugins/database';
+import securityPlugin from './plugins/security';
+import swaggerPlugin from './plugins/swagger';
 
 // Import routes
-import healthRoutes from '@/routes/health';
-import paymentIntentsRoutes from '@/routes/payment-intents';
-import customersRoutes from '@/routes/customers';
-import subscriptionsRoutes from '@/routes/subscriptions';
-import webhooksRoutes from '@/routes/webhooks';
+import healthRoutes from './routes/health';
+import paymentIntentsRoutes from './routes/payment-intents';
+import customersRoutes from './routes/customers';
+import subscriptionsRoutes from './routes/subscriptions';
+import webhooksRoutes from './routes/webhooks';
 
 // Import utilities
-import { initializeStripeService } from '@/utils/stripe';
-import { IdempotencyService } from '@/utils/idempotency';
+import { initializeStripeService } from './utils/stripe';
+import { IdempotencyService } from './utils/idempotency';
 
 const app: FastifyInstance = Fastify({
   logger: {

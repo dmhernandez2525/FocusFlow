@@ -1,11 +1,5 @@
-// Re-export all utilities
+// Re-export available utilities.
+// (crypto/dates/strings/arrays/objects/errors/logger/retry modules were planned
+// but never written. Restore exports once those files exist.)
 export * from './validation';
 export * from './formatting';
-export * from './crypto';
-export * from './dates';
-export * from './strings';
-export * from './arrays';
-export * from './objects';
-export * from './errors';
-export * from './logger';
-export * from './retry';

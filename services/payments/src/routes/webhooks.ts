@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { WebhookHeaderSchema, WebhookProcessResponseSchema } from '@/schemas/webhook';
-import { ErrorResponseSchema } from '@/schemas/common';
-import { getStripeService } from '@/utils/stripe';
-import { WebhookProcessor } from '@/utils/webhookProcessor';
+import { WebhookHeaderSchema, WebhookProcessResponseSchema } from '../schemas/webhook';
+import { ErrorResponseSchema } from '../schemas/common';
+import { getStripeService } from '../utils/stripe';
+import { WebhookProcessor } from '../utils/webhookProcessor';
 
 export default async function webhookRoutes(fastify: FastifyInstance): Promise<void> {
   // Stripe Webhook Endpoint

@@ -1,0 +1,39 @@
+version: 0.2
+
+# CodeBuild spec for FocusFlow services/cms (Strapi v4).
+# Builds production/focusflow-cms Docker image, pushes to ECR, force-redeploys ECS.
+
+env:
+  variables:
+    AWS_REGION: us-east-1
+    AWS_ACCOUNT_ID: "157305260149"
+    ECR_REGISTRY: 157305260149.dkr.ecr.us-east-1.amazonaws.com
+    APP_REPO: production/focusflow-cms
+    ECS_CLUSTER: production-platform
+    ECS_SERVICE: focusflow-cms
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to ECR..."
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - export IMAGE_TAG="$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest} | cut -c1-8)"
+      - echo "IMAGE_TAG=$IMAGE_TAG"
+
+  build:
+    commands:
+      - echo "Building focusflow-cms image..."
+      - docker build --target runner -f Dockerfile.cms -t $ECR_REGISTRY/$APP_REPO:$IMAGE_TAG -t $ECR_REGISTRY/$APP_REPO:latest .
+
+  post_build:
+    commands:
+      - echo "Pushing image..."
+      - docker push $ECR_REGISTRY/$APP_REPO:$IMAGE_TAG
+      - docker push $ECR_REGISTRY/$APP_REPO:latest
+      - echo "Forcing ECS redeploy..."
+      - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment --region $AWS_REGION > /dev/null
+      - echo "Build complete."
+
+artifacts:
+  files:
+    - buildspec-cms.yml

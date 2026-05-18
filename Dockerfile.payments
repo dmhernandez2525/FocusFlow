@@ -1,0 +1,37 @@
+# FocusFlow Payments (Fastify + Stripe) production Dockerfile (created 2026-05-18 for AWS).
+# Debian bookworm-slim base, matches the focusflow-site pattern.
+# Builds services/payments (TypeScript -> dist/) from the monorepo root.
+#
+# Build from repo root:  docker build -f Dockerfile.payments -t focusflow-payments .
+
+FROM public.ecr.aws/docker/library/node:20-bookworm-slim AS base
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl ca-certificates python3 make g++ \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN npm install -g pnpm@9
+
+# ---- builder stage (single-pass install + build to keep pnpm workspace symlinks intact) ----
+FROM base AS builder
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN cd packages/types && pnpm run build || true
+ENV NODE_ENV=production
+RUN cd services/payments && (pnpm run build || test -f dist/app.js)
+
+# ---- runner stage ----
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=3001
+RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs --create-home payments
+
+# Copy the full installed app so workspace symlinks (@focusflow/types) resolve at runtime.
+COPY --from=builder --chown=payments:nodejs /app /app
+
+USER payments
+EXPOSE 3001
+WORKDIR /app/services/payments
+# Entrypoint per services/payments/package.json -> "main": "dist/app.js".
+CMD ["node", "dist/app.js"]

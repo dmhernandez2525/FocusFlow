@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { UUID } from '@focusflow/types';
 
-interface EmailJobData {
+export interface EmailJobData {
   to: string;
   subject: string;
   template: string;

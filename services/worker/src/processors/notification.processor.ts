@@ -2,7 +2,7 @@ import { Job } from 'bullmq';
 import { db } from '../config/database.js';
 import type { UUID } from '@focusflow/types';
 
-interface NotificationJobData {
+export interface NotificationJobData {
   userId: UUID;
   type: 'gallery_ready' | 'payment_received' | 'contract_signed' | 'session_reminder' | 'trial_expiring';
   title: string;

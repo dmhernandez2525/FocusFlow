@@ -4,7 +4,7 @@ import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3
 import { Readable } from 'stream';
 import type { UUID } from '@focusflow/types';
 
-interface ImageJobData {
+export interface ImageJobData {
   photoId: UUID;
   source: string;
   operations: Array<{

@@ -2,7 +2,7 @@ import { Job } from 'bullmq';
 import { db } from '../config/database.js';
 import type { UUID } from '@focusflow/types';
 
-interface AnalyticsJobData {
+export interface AnalyticsJobData {
   event: string;
   userId?: UUID;
   photographerId?: UUID;

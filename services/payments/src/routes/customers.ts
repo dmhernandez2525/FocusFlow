@@ -12,9 +12,9 @@ import {
   UpdateCustomerBody,
   CustomerParams,
   CustomerQuery
-} from '@/schemas/customer';
-import { ErrorResponseSchema, ValidationErrorResponseSchema } from '@/schemas/common';
-import { getStripeService } from '@/utils/stripe';
+} from '../schemas/customer';
+import { ErrorResponseSchema, ValidationErrorResponseSchema } from '../schemas/common';
+import { getStripeService } from '../utils/stripe';
 
 export default async function customersRoutes(fastify: FastifyInstance): Promise<void> {
   // Create Customer

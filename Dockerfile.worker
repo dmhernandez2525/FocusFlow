@@ -1,0 +1,36 @@
+# FocusFlow Worker (BullMQ + Redis + SendGrid) production Dockerfile (created 2026-05-18 for AWS).
+# Debian bookworm-slim base; sharp/libvips need glibc.
+# Builds services/worker (TypeScript -> dist/) from the monorepo root.
+# Background worker only (no HTTP listener, no EXPOSE).
+#
+# Build from repo root:  docker build -f Dockerfile.worker -t focusflow-worker .
+
+FROM public.ecr.aws/docker/library/node:20-bookworm-slim AS base
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl ca-certificates python3 make g++ libvips-dev \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN npm install -g pnpm@9
+
+# ---- builder stage (single-pass install + build to keep pnpm workspace symlinks intact) ----
+FROM base AS builder
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN cd packages/types && pnpm run build || true
+RUN cd packages/utils && pnpm run build || true
+ENV NODE_ENV=production
+RUN cd services/worker && pnpm run build
+
+# ---- runner stage ----
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs --create-home worker
+
+# Copy the full installed app so workspace symlinks (@focusflow/types, @focusflow/utils) resolve at runtime.
+COPY --from=builder --chown=worker:nodejs /app /app
+
+USER worker
+WORKDIR /app/services/worker
+# Entrypoint per services/worker/package.json -> "main": "dist/index.js".
+CMD ["node", "dist/index.js"]

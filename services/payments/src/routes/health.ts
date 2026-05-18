@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getStripeService } from '@/utils/stripe';
+import { getStripeService } from '../utils/stripe';
 
 export default async function healthRoutes(fastify: FastifyInstance): Promise<void> {
   // Basic health check

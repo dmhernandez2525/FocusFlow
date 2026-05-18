@@ -20,10 +20,10 @@ import {
   PaymentIntentParams,
   PaymentIntentQuery,
   IdempotencyHeader
-} from '@/schemas/payment';
-import { ErrorResponseSchema, ValidationErrorResponseSchema } from '@/schemas/common';
-import { getStripeService } from '@/utils/stripe';
-import { idempotencyMiddleware, storeIdempotentResponse } from '@/utils/idempotency';
+} from '../schemas/payment';
+import { ErrorResponseSchema, ValidationErrorResponseSchema } from '../schemas/common';
+import { getStripeService } from '../utils/stripe';
+import { idempotencyMiddleware, storeIdempotentResponse } from '../utils/idempotency';
 
 export default async function paymentIntentsRoutes(fastify: FastifyInstance): Promise<void> {
   // Create Payment Intent

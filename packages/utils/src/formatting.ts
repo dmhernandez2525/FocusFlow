@@ -108,7 +108,7 @@ export const formatPhoneNumber = (phone: string): string => {
 
 // Name formatting
 export const formatName = (firstName: string, lastName?: string): string => {
-  const parts = [firstName, lastName].filter(Boolean);
+  const parts = [firstName, lastName].filter((p): p is string => Boolean(p));
   return parts.map(part =>
     part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
   ).join(' ');

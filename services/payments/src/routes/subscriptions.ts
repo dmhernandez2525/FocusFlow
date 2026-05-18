@@ -15,9 +15,9 @@ import {
   CancelSubscriptionBody,
   SubscriptionParams,
   SubscriptionQuery
-} from '@/schemas/subscription';
-import { ErrorResponseSchema, ValidationErrorResponseSchema } from '@/schemas/common';
-import { getStripeService } from '@/utils/stripe';
+} from '../schemas/subscription';
+import { ErrorResponseSchema, ValidationErrorResponseSchema } from '../schemas/common';
+import { getStripeService } from '../utils/stripe';
 
 export default async function subscriptionsRoutes(fastify: FastifyInstance): Promise<void> {
   // Create Subscription
