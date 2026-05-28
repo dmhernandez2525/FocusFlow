@@ -22,7 +22,7 @@
     "db:setup": "cd infrastructure/database && pnpm install && pnpm run build && pnpm run migrate:latest && pnpm run seed:run"
   },
   "devDependencies": {
-    "eslint": "^9.0.0",
+    "eslint": "^10.4.0",
     "prettier": "^3.3.0",
     "turbo": "^2.0.0",
     "typescript": "^5.5.0"
