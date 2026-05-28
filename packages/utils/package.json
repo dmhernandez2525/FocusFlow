@@ -12,7 +12,7 @@
   "dependencies": {
     "@focusflow/types": "workspace:*",
     "date-fns": "^4.1.0",
-    "nanoid": "^5.0.9",
+    "nanoid": "^5.1.11",
     "zod": "^3.24.1"
   },
   "devDependencies": {
